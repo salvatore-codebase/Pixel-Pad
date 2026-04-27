@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { loadProjects } from "@/lib/storage";
 
 interface MainMenuProps {
@@ -9,6 +10,12 @@ interface MainMenuProps {
 export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps) {
   const projects = loadProjects();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('pixelpad-theme') !== 'light');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', !darkMode);
+    localStorage.setItem('pixelpad-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background relative overflow-hidden">
@@ -19,8 +26,21 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         <div className="absolute top-1/2 left-1/4 w-24 h-24 rounded-full bg-chart-2/10 blur-2xl" />
       </div>
 
-      {/* Logo — w-full + text-center uses the browser's native centering so all three lines share the same axis */}
-      <div className="mb-12 w-full text-center relative z-10">
+      {/* Logo — w-full so the absolute toggle reaches the right edge of the viewport */}
+      <div className="relative mb-12 w-full text-center z-10">
+        {/* Theme toggle — top-0 aligns its top with the top of PIXEL text; right-8 places it at the viewport's right edge */}
+        <div className="absolute right-8 top-0">
+          <button
+            onClick={() => setDarkMode(d => !d)}
+            className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80"
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            data-testid="btn-menu-theme-toggle"
+          >
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+          </button>
+        </div>
+
         <div className="font-pixel text-2xl md:text-4xl text-primary mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
           PIXEL
         </div>
@@ -44,12 +64,9 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10 flex flex-col flex-1">
-            {/* Fixed-height icon row — ensures emoji tops align regardless of glyph metrics */}
             <div className="h-16 flex items-start mb-4 leading-none text-5xl">🎨</div>
-            {/* Fixed-height title rows */}
             <div className="h-8 flex items-center font-pixel text-base text-primary">CREATIVE</div>
             <div className="h-8 flex items-center font-pixel text-base text-primary mb-3">MODE</div>
-            {/* Description grows to fill space, pushing tags to a consistent bottom */}
             <p className="text-sm text-muted-foreground leading-relaxed flex-1">
               Professional tools for artists. Pen, eraser, blotch tool, fill, line drawing, and a full color spectrum with 20 custom palette slots.
             </p>
@@ -71,9 +88,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10 flex flex-col flex-1">
-            {/* Same fixed-height icon row */}
             <div className="h-16 flex items-start mb-4 leading-none text-5xl">🦕</div>
-            {/* Same fixed-height title rows */}
             <div className="h-8 flex items-center font-pixel text-base text-chart-2">JUNIOR</div>
             <div className="h-8 flex items-center font-pixel text-base text-chart-2 mb-3">MODE</div>
             <p className="text-sm text-muted-foreground leading-relaxed flex-1">

@@ -204,7 +204,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
           type="text"
           value={projectName}
           onChange={e => { setProjectName(e.target.value); setSaved(false); }}
-          className="flex-1 max-w-40 text-sm font-semibold bg-transparent border-b border-transparent hover:border-white/20 focus:border-primary outline-none px-1"
+          className="flex-1 max-w-40 text-sm font-semibold bg-transparent border-b border-transparent hover:border-foreground/20 focus:border-primary outline-none px-1"
           data-testid="input-junior-name"
         />
         <div className="flex items-center gap-1 ml-auto flex-wrap">
@@ -277,7 +277,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                       key={i}
                       className={cn(
                         "w-9 h-9 rounded-xl border-4 transition-all hover:scale-110",
-                        selectedColorIndex === i ? "border-white scale-110 shadow-lg ring-2 ring-purple-400" : "border-transparent"
+                        selectedColorIndex === i ? "border-foreground scale-110 shadow-lg ring-2 ring-purple-400" : "border-transparent"
                       )}
                       style={{ backgroundColor: color }}
                       onClick={() => { setActiveColor(color); setSelectedColorIndex(i); }}
@@ -288,7 +288,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                 {/* Color picker for editing the selected slot */}
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-muted-foreground">Edit Color</span>
-                  <label className="relative w-9 h-9 flex items-center justify-center cursor-pointer rounded-xl hover:bg-white/10 transition-colors flex-shrink-0" title="Pick a color for the selected slot">
+                  <label className="relative w-9 h-9 flex items-center justify-center cursor-pointer rounded-xl hover:bg-muted/60 transition-colors flex-shrink-0" title="Pick a color for the selected slot">
                     <span className="text-2xl select-none pointer-events-none">🎨</span>
                     <input
                       type="color"
@@ -348,7 +348,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={canvasAreaRef}
-            className="absolute inset-0 bg-gradient-to-br from-blue-50/10 to-purple-50/10"
+            className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5"
             style={{ overflow: zoom >= 2 ? 'scroll' : 'auto' }}
           >
           <div style={(() => {
