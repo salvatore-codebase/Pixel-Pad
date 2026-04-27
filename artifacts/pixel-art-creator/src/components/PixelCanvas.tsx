@@ -152,7 +152,7 @@ export default function PixelCanvas({
     }
 
     if (tool === 'blotch') {
-      newData = blotchPixels(newData, grid.width, grid.height, x, y, activeColor, 2);
+      newData = blotchPixels(newData, grid.width, grid.height, x, y, activeColor, 2, alpha);
       onGridChange(newData, false);
       return;
     }

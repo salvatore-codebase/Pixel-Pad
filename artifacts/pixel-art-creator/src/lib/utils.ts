@@ -61,7 +61,8 @@ export function blotchPixels(
   x: number,
   y: number,
   color: string,
-  radius = 2
+  radius = 2,
+  alpha = 1
 ): string[] {
   const newData = [...data];
   for (let dy = -radius; dy <= radius; dy++) {
@@ -72,7 +73,7 @@ export function blotchPixels(
         if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
           const idx = ny * width + nx;
           if (Math.random() > 0.3) {
-            newData[idx] = color;
+            newData[idx] = alpha < 1 ? blendColors(newData[idx], color, alpha) : color;
           }
         }
       }

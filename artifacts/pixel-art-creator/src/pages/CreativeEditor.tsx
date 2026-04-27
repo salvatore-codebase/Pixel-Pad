@@ -17,7 +17,7 @@ interface CreativeEditorProps {
 const TOOLS: Array<{ id: ToolCreative; label: string; icon: string; tip: string }> = [
   { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw single pixels' },
   { id: 'eraser', label: 'Eraser', icon: '🧹', tip: 'Erase pixels' },
-  { id: 'blotch', label: 'Blotch', icon: '💦', tip: 'Blend & texture pixels' },
+  { id: 'blotch', label: 'Blotch', icon: '🧽', tip: 'Blend & texture pixels' },
   { id: 'airbrush', label: 'Airbrush', icon: '🌫️', tip: 'Spray paint effect' },
   { id: 'watercolor', label: 'Waterclr', icon: '🎨', tip: 'Soft watercolor brush' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Flood fill an area' },

@@ -275,9 +275,9 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                 </div>
                 {/* Color picker for editing the selected slot */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-muted-foreground">Edit slot:</span>
-                  <label className="relative w-8 h-8 rounded-xl overflow-hidden border-2 border-white/40 cursor-pointer flex-shrink-0">
-                    <div className="absolute inset-0" style={{ backgroundColor: customColors[selectedColorIndex] }} />
+                  <span className="text-[10px] font-bold text-muted-foreground">Edit Color</span>
+                  <label className="relative w-9 h-9 flex items-center justify-center cursor-pointer rounded-xl hover:bg-white/10 transition-colors flex-shrink-0" title="Pick a color for the selected slot">
+                    <span className="text-2xl select-none pointer-events-none">🎨</span>
                     <input
                       type="color"
                       value={customColors[selectedColorIndex]}
@@ -291,10 +291,6 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                   </label>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] text-muted-foreground truncate">{customColors[selectedColorIndex]}</div>
-                    <div className="text-[9px] text-muted-foreground">slot {selectedColorIndex + 1} of {customColors.length}</div>
-                  </div>
                 </div>
               </div>
             </div>
