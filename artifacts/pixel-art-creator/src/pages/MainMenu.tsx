@@ -20,7 +20,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
       </div>
 
       {/* Logo */}
-      <div className="mb-12 text-center relative z-10">
+      <div className="mb-12 flex flex-col items-center relative z-10">
         <div className="font-pixel text-2xl md:text-4xl text-primary mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
           PIXEL
         </div>
@@ -36,18 +36,18 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
       <div className="flex flex-col md:flex-row gap-6 relative z-10 px-4 w-full max-w-2xl">
         {/* Creative Mode */}
         <button
-          className="flex-1 group relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-card/80 p-8 text-left transition-all duration-200 hover:border-primary hover:shadow-[0_0_40px_hsl(var(--primary)/0.3)] hover:scale-[1.02] backdrop-blur-sm"
+          className="flex-1 flex flex-col group relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-card/80 p-8 text-left transition-all duration-200 hover:border-primary hover:shadow-[0_0_40px_hsl(var(--primary)/0.3)] hover:scale-[1.02] backdrop-blur-sm"
           onClick={() => onSelectMode('creative')}
           onMouseEnter={() => setHoveredCard('creative')}
           onMouseLeave={() => setHoveredCard(null)}
           data-testid="btn-creative-mode"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col flex-1">
             <div className="text-5xl mb-4">🎨</div>
             <div className="font-pixel text-base text-primary mb-3">CREATIVE</div>
             <div className="font-pixel text-base text-primary mb-3">MODE</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
               Professional tools for artists. Pen, eraser, blotch tool, fill, line drawing, and a full color spectrum with 20 custom palette slots.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -60,18 +60,18 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
 
         {/* Junior Mode */}
         <button
-          className="flex-1 group relative overflow-hidden rounded-2xl border-2 border-chart-2/30 bg-card/80 p-8 text-left transition-all duration-200 hover:border-chart-2 hover:shadow-[0_0_40px_hsl(var(--chart-2)/0.3)] hover:scale-[1.02] backdrop-blur-sm"
+          className="flex-1 flex flex-col group relative overflow-hidden rounded-2xl border-2 border-chart-2/30 bg-card/80 p-8 text-left transition-all duration-200 hover:border-chart-2 hover:shadow-[0_0_40px_hsl(var(--chart-2)/0.3)] hover:scale-[1.02] backdrop-blur-sm"
           onClick={() => onSelectMode('junior')}
           onMouseEnter={() => setHoveredCard('junior')}
           onMouseLeave={() => setHoveredCard(null)}
           data-testid="btn-junior-mode"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col flex-1">
             <div className="text-5xl mb-4">🦕</div>
             <div className="font-pixel text-base text-chart-2 mb-3">JUNIOR</div>
             <div className="font-pixel text-base text-chart-2 mb-3">MODE</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
               Fun and easy for kids! Simple tools, bright colors, and 30+ stamp shapes to create amazing pixel art.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">

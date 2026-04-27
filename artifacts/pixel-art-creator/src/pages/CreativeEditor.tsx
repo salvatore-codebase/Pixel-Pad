@@ -18,7 +18,7 @@ const TOOLS: Array<{ id: ToolCreative; label: string; icon: string; tip: string 
   { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw single pixels' },
   { id: 'blotch', label: 'Blotch', icon: '🧽', tip: 'Blend & texture pixels' },
   { id: 'airbrush', label: 'Airbrush', icon: '🌫️', tip: 'Spray paint effect' },
-  { id: 'watercolor', label: 'Waterclr', icon: '🎨', tip: 'Soft watercolor brush' },
+  { id: 'watercolor', label: 'Waterclr', icon: '🖌️', tip: 'Soft watercolor brush' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Flood fill an area' },
   { id: 'line', label: 'Line', icon: '📏', tip: 'Draw a straight line' },
   { id: 'marker', label: 'Marker', icon: '🖊️', tip: 'Bold opaque marker strokes' },
