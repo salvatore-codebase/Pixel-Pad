@@ -132,7 +132,7 @@ export default function ShadeAndTintPicker({ baseColor, selectedColor, onSelectC
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Shade &amp; Tint
+        Shader
       </div>
 
       {/* SV color rectangle */}

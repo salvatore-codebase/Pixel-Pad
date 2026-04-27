@@ -231,15 +231,6 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 </div>
               </div>
 
-              {/* Active color */}
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Active Color</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded border-2 border-white/20" style={{ backgroundColor: activeColor }} />
-                  <span className="text-xs font-mono text-muted-foreground">{activeColor}</span>
-                </div>
-              </div>
-
               {/* Custom Palette */}
               <div>
                 <CustomPalettePanel
@@ -279,11 +270,12 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
           )}
         </div>
 
-        {/* Canvas area — fills all remaining space, scrollbars at its outer edges, only when content overflows */}
-        <div
-          ref={canvasAreaRef}
-          className="flex-1 overflow-auto bg-background/50"
-        >
+        {/* Canvas viewport — the outer div gives a definite size; the inner scrollable div uses it */}
+        <div className="flex-1 relative overflow-hidden">
+          <div
+            ref={canvasAreaRef}
+            className="absolute inset-0 overflow-auto bg-background/50"
+          >
           <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
             <PixelCanvas
               grid={grid}
@@ -295,6 +287,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
               onGridChange={handleGridChange}
               onPickColor={(color) => { setActiveColor(color); setPaletteBasisColor(color); setActiveTool('pen'); }}
             />
+          </div>
           </div>
         </div>
       </div>
