@@ -40,23 +40,26 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
   const [saved, setSaved] = useState(true);
+  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
 
   const currentProjectId = useRef(project.id);
   const canvasAreaRef = useRef<HTMLDivElement>(null);
   const zoomInitialized = useRef(false);
 
-  // Auto-fit initial integer zoom using ResizeObserver on the scrollable area
+  // Track container size; auto-fit zoom on first measurement
   useEffect(() => {
     const el = canvasAreaRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      if (zoomInitialized.current) return;
       const { width, height } = entry.contentRect;
-      const squareFit = Math.min(width, height) * 0.95;
-      const maxDim = Math.max(grid.width, grid.height);
-      const fit = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, Math.floor(squareFit / maxDim)));
-      setZoom(fit);
-      zoomInitialized.current = true;
+      setContainerSize({ w: width, h: height });
+      if (!zoomInitialized.current) {
+        const squareFit = Math.min(width, height) * 0.95;
+        const maxDim = Math.max(grid.width, grid.height);
+        const fit = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, Math.floor(squareFit / maxDim)));
+        setZoom(fit);
+        zoomInitialized.current = true;
+      }
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -277,7 +280,11 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
             className="absolute inset-0 bg-background/50"
             style={{ overflow: zoom >= 2 ? 'scroll' : 'auto' }}
           >
-          <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
+          <div style={{
+            width: containerSize.w > 0 ? Math.max(containerSize.w + (zoom >= 2 ? 300 : 0), grid.width * zoom + 128) : '100%',
+            height: containerSize.h > 0 ? Math.max(containerSize.h + (zoom >= 2 ? 300 : 0), grid.height * zoom + 128) : '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
             <PixelCanvas
               grid={grid}
               zoom={zoom}

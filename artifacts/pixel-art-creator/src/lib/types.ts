@@ -41,13 +41,13 @@ export const CANVAS_WIDTH = 32;
 export const CANVAS_HEIGHT = 32;
 export const CREATIVE_CANVAS_WIDTH = 320;
 export const CREATIVE_CANVAS_HEIGHT = 180;
-export const JUNIOR_CANVAS_WIDTH = 128;
-export const JUNIOR_CANVAS_HEIGHT = 128;
+export const JUNIOR_CANVAS_WIDTH = 192;
+export const JUNIOR_CANVAS_HEIGHT = 108;
 export const MAX_HISTORY = 10;
 export const MAX_PROJECTS = 32;
 export const GALLERY_PER_PAGE = 18;
-export const CREATIVE_MAX_ZOOM = 16;
-export const JUNIOR_MAX_ZOOM = 10;
+export const CREATIVE_MAX_ZOOM = 28;
+export const JUNIOR_MAX_ZOOM = 28;
 export const MIN_ZOOM = 1;
 
 export const DEFAULT_CREATIVE_PALETTE: string[] = [
