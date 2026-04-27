@@ -153,7 +153,7 @@ export default function ShadeAndTintPicker({ baseColor, selectedColor, onSelectC
           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Opacity</span>
           <span className="text-[10px] text-muted-foreground font-mono">{opacity}%</span>
         </div>
-        <div className="relative h-4 rounded overflow-hidden border border-white/10">
+        <div className="relative h-5 rounded overflow-hidden border border-white/10">
           {/* Checkerboard background */}
           <div
             className="absolute inset-0"
@@ -167,7 +167,18 @@ export default function ShadeAndTintPicker({ baseColor, selectedColor, onSelectC
             className="absolute inset-0"
             style={{ background: `linear-gradient(to right, transparent, ${selectedColor})` }}
           />
-          {/* Range input on top */}
+          {/* Visible thumb indicator */}
+          <div
+            className="absolute top-0 bottom-0 pointer-events-none"
+            style={{
+              left: `calc(${opacity}% - 2px)`,
+              width: '4px',
+              background: 'white',
+              borderRadius: '2px',
+              boxShadow: '0 0 3px rgba(0,0,0,0.7)',
+            }}
+          />
+          {/* Range input on top — invisible but interactive */}
           <input
             type="range"
             min={0}

@@ -230,21 +230,26 @@ export default function PixelCanvas({
     }
 
     if (tool === 'pen') {
-      const drawColor = alpha < 1
-        ? blendColors(newData[y * grid.width + x], activeColor, alpha)
-        : activeColor;
+      const applyPenColor = (data: string[], px: number, py: number) => {
+        const idx = py * grid.width + px;
+        data[idx] = alpha < 1 ? blendColors(data[idx], activeColor, alpha) : activeColor;
+      };
       if (!isFirst && lastPixel.current) {
-        newData = drawLine(newData, grid.width, grid.height, lastPixel.current.x, lastPixel.current.y, x, y, activeColor);
-        if (alpha < 1) {
-          // re-blend the line pixels
-          for (let i = 0; i < newData.length; i++) {
-            if (newData[i] === activeColor && grid.data[i] !== activeColor) {
-              newData[i] = blendColors(grid.data[i], activeColor, alpha);
-            }
-          }
+        // Bresenham line with per-pixel opacity blending
+        const { x: x0, y: y0 } = lastPixel.current;
+        let cx = x0, cy = y0;
+        const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
+        const sx2 = cx < x ? 1 : -1, sy2 = cy < y ? 1 : -1;
+        let err2 = dx - dy;
+        while (true) {
+          if (cx >= 0 && cx < grid.width && cy >= 0 && cy < grid.height) applyPenColor(newData, cx, cy);
+          if (cx === x && cy === y) break;
+          const e2 = 2 * err2;
+          if (e2 > -dy) { err2 -= dy; cx += sx2; }
+          if (e2 < dx) { err2 += dx; cy += sy2; }
         }
       } else {
-        newData[y * grid.width + x] = drawColor;
+        applyPenColor(newData, x, y);
       }
       onGridChange(newData, false);
     }

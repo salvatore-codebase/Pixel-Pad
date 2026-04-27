@@ -32,6 +32,8 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
+  const [customColors, setCustomColors] = useState<string[]>([...JUNIOR_COLORS]);
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [showStamps, setShowStamps] = useState(false);
   const [selectedStamp, setSelectedStamp] = useState<StampShape | null>(null);
   const [history, setHistory] = useState<string[][]>([project.grid.data]);
@@ -209,7 +211,19 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Stamp flyout — floats to the right of the sidebar over the canvas */}
+        {showStamps && activeTool === 'stamp' && (
+          <div
+            className="absolute top-0 bottom-0 z-20 bg-card/95 backdrop-blur-sm border-r border-border overflow-y-auto shadow-xl"
+            style={{ left: toolbarMinimized ? '48px' : '256px', width: '240px' }}
+          >
+            <div className="p-3">
+              <StampPanel selectedStamp={selectedStamp} onSelectStamp={handleSelectStamp} />
+            </div>
+          </div>
+        )}
+
         {/* Left toolbar */}
         <div className={cn("flex flex-col border-r-2 border-border bg-gradient-to-b from-purple-50/30 to-blue-50/30 transition-all duration-200 overflow-y-auto flex-shrink-0", toolbarMinimized ? "w-12" : "w-64")}>
           <button onClick={() => setToolbarMinimized(m => !m)} className="p-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors border-b-2 border-border flex items-center justify-center bg-white/20" data-testid="btn-junior-minimize">
@@ -244,29 +258,45 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
               </div>
 
               <div>
-                <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide mb-2">Colors</div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-xl border-4 border-white shadow-md" style={{ backgroundColor: activeColor }} />
-                  <span className="text-xs font-bold text-muted-foreground">Active</span>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {JUNIOR_COLORS.map((color) => (
+                <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide mb-2">Custom Color</div>
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {customColors.map((color, i) => (
                     <button
-                      key={color}
-                      className={cn("w-9 h-9 rounded-xl border-4 transition-all hover:scale-110", activeColor === color ? "border-white scale-110 shadow-lg" : "border-transparent")}
+                      key={i}
+                      className={cn(
+                        "w-9 h-9 rounded-xl border-4 transition-all hover:scale-110",
+                        selectedColorIndex === i ? "border-white scale-110 shadow-lg ring-2 ring-purple-400" : "border-transparent"
+                      )}
                       style={{ backgroundColor: color }}
-                      onClick={() => setActiveColor(color)}
-                      data-testid={`junior-color-${color}`}
+                      onClick={() => { setActiveColor(color); setSelectedColorIndex(i); }}
+                      data-testid={`junior-color-${i}`}
                     />
                   ))}
                 </div>
-              </div>
-
-              {showStamps && activeTool === 'stamp' && (
-                <div className="border-t-2 border-border pt-3">
-                  <StampPanel selectedStamp={selectedStamp} onSelectStamp={handleSelectStamp} />
+                {/* Color picker for editing the selected slot */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-muted-foreground">Edit slot:</span>
+                  <label className="relative w-8 h-8 rounded-xl overflow-hidden border-2 border-white/40 cursor-pointer flex-shrink-0">
+                    <div className="absolute inset-0" style={{ backgroundColor: customColors[selectedColorIndex] }} />
+                    <input
+                      type="color"
+                      value={customColors[selectedColorIndex]}
+                      onChange={(e) => {
+                        const hex = e.target.value.toUpperCase();
+                        const next = [...customColors];
+                        next[selectedColorIndex] = hex;
+                        setCustomColors(next);
+                        setActiveColor(hex);
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </label>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[9px] text-muted-foreground truncate">{customColors[selectedColorIndex]}</div>
+                    <div className="text-[9px] text-muted-foreground">slot {selectedColorIndex + 1} of {customColors.length}</div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
