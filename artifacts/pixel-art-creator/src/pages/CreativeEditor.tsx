@@ -15,9 +15,11 @@ interface CreativeEditorProps {
 }
 
 const TOOLS: Array<{ id: ToolCreative; label: string; icon: string; tip: string }> = [
-  { id: 'pen', label: 'Pen', icon: '✏️', tip: 'Draw single pixels' },
+  { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw single pixels' },
   { id: 'eraser', label: 'Eraser', icon: '🧹', tip: 'Erase pixels' },
   { id: 'blotch', label: 'Blotch', icon: '💦', tip: 'Blend & texture pixels' },
+  { id: 'airbrush', label: 'Airbrush', icon: '🌫️', tip: 'Spray paint effect' },
+  { id: 'watercolor', label: 'Waterclr', icon: '🎨', tip: 'Soft watercolor brush' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Flood fill an area' },
   { id: 'line', label: 'Line', icon: '📏', tip: 'Draw a straight line' },
   { id: 'eyedropper', label: 'Pick', icon: '💉', tip: 'Pick color from canvas' },
@@ -30,6 +32,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [activeTool, setActiveTool] = useState<ToolCreative>('pen');
   const [activeColor, setActiveColor] = useState(palette.colors[0] || '#FF0000');
   const [paletteBasisColor, setPaletteBasisColor] = useState(palette.colors[0] || '#FF0000');
+  const [opacity, setOpacity] = useState(100);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
@@ -37,35 +40,29 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
   const [saved, setSaved] = useState(true);
-  const [squareSize, setSquareSize] = useState(0);
 
   const currentProjectId = useRef(project.id);
   const canvasAreaRef = useRef<HTMLDivElement>(null);
-  const outerRef = useRef<HTMLDivElement>(null);
   const zoomInitialized = useRef(false);
 
-  // Measure outer wrapper to compute square size
+  // Auto-fit initial integer zoom using ResizeObserver on the scrollable area
   useEffect(() => {
-    const el = outerRef.current;
+    const el = canvasAreaRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
+      if (zoomInitialized.current) return;
       const { width, height } = entry.contentRect;
-      setSquareSize(Math.min(width, height));
+      const squareFit = Math.min(width, height) * 0.95;
+      const maxDim = Math.max(grid.width, grid.height);
+      const fit = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, Math.floor(squareFit / maxDim)));
+      setZoom(fit);
+      zoomInitialized.current = true;
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [grid.width, grid.height]);
 
-  // Auto-fit initial integer zoom once we know the square size
-  useEffect(() => {
-    if (squareSize <= 0 || zoomInitialized.current) return;
-    const maxDim = Math.max(grid.width, grid.height);
-    const fit = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, Math.floor((squareSize * 0.95) / maxDim)));
-    setZoom(fit);
-    zoomInitialized.current = true;
-  }, [squareSize, grid.width, grid.height]);
-
-  // Pan with hand tool
+  // Pan with hand tool — attach to the scrollable area
   useEffect(() => {
     const area = canvasAreaRef.current;
     if (!area || activeTool !== 'hand') return;
@@ -93,7 +90,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
     };
   }, [activeTool]);
 
-  // Wheel zoom (non-passive, integer steps)
+  // Wheel zoom (non-passive, integer steps) on the scrollable canvas area
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     const step = e.deltaY < 0 ? 1 : -1;
@@ -243,7 +240,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 </div>
               </div>
 
-              {/* Custom Palette — FIRST (swapped) */}
+              {/* Custom Palette */}
               <div>
                 <CustomPalettePanel
                   colors={palette.colors}
@@ -253,12 +250,14 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 />
               </div>
 
-              {/* Shade & Tint — SECOND (swapped, replaces Spectrum) */}
+              {/* HSV Color Picker + Opacity */}
               <div>
                 <ShadeAndTintPicker
                   baseColor={paletteBasisColor}
                   selectedColor={activeColor}
                   onSelectColor={setActiveColor}
+                  opacity={opacity}
+                  onOpacityChange={setOpacity}
                 />
               </div>
             </div>
@@ -280,29 +279,22 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
           )}
         </div>
 
-        {/* Outer wrapper — fills remaining space, centers the square */}
-        <div ref={outerRef} className="flex-1 overflow-hidden flex items-center justify-center bg-background/50">
-          {/* Square scrollable canvas area */}
-          <div
-            ref={canvasAreaRef}
-            style={{
-              width: squareSize > 0 ? squareSize : '100%',
-              height: squareSize > 0 ? squareSize : '100%',
-              overflow: 'scroll',
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
-              <PixelCanvas
-                grid={grid}
-                zoom={zoom}
-                showGrid={showGrid}
-                activeTool={activeTool}
-                activeColor={activeColor}
-                onGridChange={handleGridChange}
-                onPickColor={(color) => { setActiveColor(color); setPaletteBasisColor(color); setActiveTool('pen'); }}
-              />
-            </div>
+        {/* Canvas area — fills all remaining space, scrollbars at its outer edges, only when content overflows */}
+        <div
+          ref={canvasAreaRef}
+          className="flex-1 overflow-auto bg-background/50"
+        >
+          <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
+            <PixelCanvas
+              grid={grid}
+              zoom={zoom}
+              showGrid={showGrid}
+              activeTool={activeTool}
+              activeColor={activeColor}
+              opacity={opacity}
+              onGridChange={handleGridChange}
+              onPickColor={(color) => { setActiveColor(color); setPaletteBasisColor(color); setActiveTool('pen'); }}
+            />
           </div>
         </div>
       </div>

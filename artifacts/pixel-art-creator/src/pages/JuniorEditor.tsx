@@ -14,7 +14,7 @@ interface JuniorEditorProps {
 }
 
 const TOOLS: Array<{ id: ToolJunior; label: string; icon: string; tip: string }> = [
-  { id: 'pen', label: 'Draw', icon: '✏️', tip: 'Draw pixels' },
+  { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw pixels' },
   { id: 'eraser', label: 'Erase', icon: '🧹', tip: 'Erase pixels' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Fill with color' },
   { id: 'stamp', label: 'Stamp', icon: '🎭', tip: 'Stamp a shape' },
@@ -38,34 +38,28 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
   const [saved, setSaved] = useState(true);
-  const [squareSize, setSquareSize] = useState(0);
 
   const canvasAreaRef = useRef<HTMLDivElement>(null);
-  const outerRef = useRef<HTMLDivElement>(null);
   const zoomInitialized = useRef(false);
 
-  // Measure outer wrapper to compute square size
+  // Auto-fit initial integer zoom using ResizeObserver on the scrollable area
   useEffect(() => {
-    const el = outerRef.current;
+    const el = canvasAreaRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
+      if (zoomInitialized.current) return;
       const { width, height } = entry.contentRect;
-      setSquareSize(Math.min(width, height));
+      const squareFit = Math.min(width, height) * 0.95;
+      const maxDim = Math.max(grid.width, grid.height);
+      const fit = Math.max(MIN_ZOOM, Math.min(JUNIOR_MAX_ZOOM, Math.floor(squareFit / maxDim)));
+      setZoom(fit);
+      zoomInitialized.current = true;
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [grid.width, grid.height]);
 
-  // Auto-fit initial integer zoom once we know the square size
-  useEffect(() => {
-    if (squareSize <= 0 || zoomInitialized.current) return;
-    const maxDim = Math.max(grid.width, grid.height);
-    const fit = Math.max(MIN_ZOOM, Math.min(JUNIOR_MAX_ZOOM, Math.floor((squareSize * 0.95) / maxDim)));
-    setZoom(fit);
-    zoomInitialized.current = true;
-  }, [squareSize, grid.width, grid.height]);
-
-  // Pan with hand tool
+  // Pan with hand tool — attach to the scrollable area
   useEffect(() => {
     const area = canvasAreaRef.current;
     if (!area || activeTool !== 'hand') return;
@@ -273,29 +267,21 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
           )}
         </div>
 
-        {/* Outer wrapper — fills remaining space, centers the square */}
-        <div ref={outerRef} className="flex-1 overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-50/10 to-purple-50/10">
-          {/* Square scrollable canvas area */}
-          <div
-            ref={canvasAreaRef}
-            style={{
-              width: squareSize > 0 ? squareSize : '100%',
-              height: squareSize > 0 ? squareSize : '100%',
-              overflow: 'scroll',
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
-              <PixelCanvas
-                grid={grid}
-                zoom={zoom}
-                showGrid={showGrid}
-                activeTool={activeTool}
-                activeColor={activeColor}
-                selectedStamp={selectedStamp}
-                onGridChange={handleGridChange}
-              />
-            </div>
+        {/* Canvas area — fills all remaining space, scrollbars at its outer edges, only when content overflows */}
+        <div
+          ref={canvasAreaRef}
+          className="flex-1 overflow-auto bg-gradient-to-br from-blue-50/10 to-purple-50/10"
+        >
+          <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
+            <PixelCanvas
+              grid={grid}
+              zoom={zoom}
+              showGrid={showGrid}
+              activeTool={activeTool}
+              activeColor={activeColor}
+              selectedStamp={selectedStamp}
+              onGridChange={handleGridChange}
+            />
           </div>
         </div>
       </div>

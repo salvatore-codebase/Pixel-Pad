@@ -81,6 +81,77 @@ export function blotchPixels(
   return newData;
 }
 
+export function blendColors(base: string, overlay: string, alpha: number): string {
+  if (alpha <= 0) return base || '';
+  if (alpha >= 1) return overlay;
+  const bg = base && base.length >= 7 ? base : '#252535';
+  const br = parseInt(bg.slice(1, 3), 16);
+  const bgc = parseInt(bg.slice(3, 5), 16);
+  const bb = parseInt(bg.slice(5, 7), 16);
+  const or = parseInt(overlay.slice(1, 3), 16);
+  const og = parseInt(overlay.slice(3, 5), 16);
+  const ob = parseInt(overlay.slice(5, 7), 16);
+  const r = Math.round(br + (or - br) * alpha);
+  const g = Math.round(bgc + (og - bgc) * alpha);
+  const b = Math.round(bb + (ob - bb) * alpha);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+}
+
+export function airbrushPixels(
+  data: string[],
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  color: string,
+  opacity: number,
+  radius = 5
+): string[] {
+  const newData = [...data];
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > radius) continue;
+      const prob = Math.pow(1 - dist / radius, 1.5) * 0.8;
+      if (Math.random() > prob) continue;
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const idx = ny * width + nx;
+        const falloff = (1 - dist / radius) * (opacity / 100);
+        newData[idx] = blendColors(newData[idx], color, falloff);
+      }
+    }
+  }
+  return newData;
+}
+
+export function watercolorPixels(
+  data: string[],
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  color: string,
+  opacity: number,
+  radius = 4
+): string[] {
+  const newData = [...data];
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > radius) continue;
+      if (Math.random() > 0.65) continue;
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const idx = ny * width + nx;
+        const blend = (1 - dist / radius) * 0.35 * (opacity / 100);
+        newData[idx] = blendColors(newData[idx], color, blend);
+      }
+    }
+  }
+  return newData;
+}
+
 export function drawLine(
   data: string[],
   width: number,
