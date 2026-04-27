@@ -46,8 +46,8 @@ export const JUNIOR_CANVAS_HEIGHT = 108;
 export const MAX_HISTORY = 10;
 export const MAX_PROJECTS = 32;
 export const GALLERY_PER_PAGE = 18;
-export const CREATIVE_MAX_ZOOM = 28;
-export const JUNIOR_MAX_ZOOM = 28;
+export const CREATIVE_MAX_ZOOM = 36;
+export const JUNIOR_MAX_ZOOM = 36;
 export const MIN_ZOOM = 1;
 
 export const DEFAULT_CREATIVE_PALETTE: string[] = [

@@ -42,6 +42,8 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
 
   const canvasAreaRef = useRef<HTMLDivElement>(null);
   const zoomInitialized = useRef(false);
+  const containerSizeRef = useRef({ w: 0, h: 0 });
+  containerSizeRef.current = containerSize;
 
   // Track container size; auto-fit zoom on first measurement
   useEffect(() => {
@@ -61,6 +63,20 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
     observer.observe(el);
     return () => observer.disconnect();
   }, [grid.width, grid.height]);
+
+  // Re-center the canvas in the scroll area whenever zoom changes
+  useEffect(() => {
+    const el = canvasAreaRef.current;
+    if (!el || !zoomInitialized.current) return;
+    const { w, h } = containerSizeRef.current;
+    if (w === 0 || h === 0) return;
+    const outerPad = zoom >= 4 ? 480 : 0;
+    const overflowBonus = zoom >= 2 ? 300 : 0;
+    const iW = Math.max(w + overflowBonus, grid.width * zoom + outerPad * 2);
+    const iH = Math.max(h + overflowBonus, grid.height * zoom + outerPad * 2);
+    el.scrollLeft = (iW - w) / 2;
+    el.scrollTop = (iH - h) / 2;
+  }, [zoom, grid.width, grid.height]);
 
   // Pan with hand tool — attach to the scrollable area
   useEffect(() => {
@@ -277,11 +293,13 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
             className="absolute inset-0 bg-gradient-to-br from-blue-50/10 to-purple-50/10"
             style={{ overflow: zoom >= 2 ? 'scroll' : 'auto' }}
           >
-          <div style={{
-            width: containerSize.w > 0 ? Math.max(containerSize.w + (zoom >= 2 ? 300 : 0), grid.width * zoom + 128) : '100%',
-            height: containerSize.h > 0 ? Math.max(containerSize.h + (zoom >= 2 ? 300 : 0), grid.height * zoom + 128) : '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
+          <div style={(() => {
+            const outerPad = zoom >= 4 ? 480 : 0;
+            const overflowBonus = zoom >= 2 ? 300 : 0;
+            const w = containerSize.w > 0 ? Math.max(containerSize.w + overflowBonus, grid.width * zoom + outerPad * 2) : undefined;
+            const h = containerSize.h > 0 ? Math.max(containerSize.h + overflowBonus, grid.height * zoom + outerPad * 2) : undefined;
+            return { width: w ?? '100%', height: h ?? '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+          })()}>
             <PixelCanvas
               grid={grid}
               zoom={zoom}
