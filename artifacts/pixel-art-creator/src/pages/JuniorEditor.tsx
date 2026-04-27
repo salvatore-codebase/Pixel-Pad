@@ -169,10 +169,21 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
     setSaved(true);
   }, [project, projectName, grid, allProjects, onProjectsChange]);
 
+  // Apply saved theme on mount
   useEffect(() => {
     document.documentElement.classList.toggle('light', !darkMode);
-    localStorage.setItem('pixelpad-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleToggle = () => {
+    const newDark = !darkMode;
+    setDarkMode(newDark);
+    if (newDark) {
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+    }
+    localStorage.setItem('pixelpad-theme', newDark ? 'dark' : 'light');
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -214,7 +225,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
           <button onClick={zoomOut} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-out">−</button>
           <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
           <button onClick={zoomIn} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-in">+</button>
-          <button onClick={() => setDarkMode(d => !d)} className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-junior-theme-toggle">
+          <button onClick={handleToggle} className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-junior-theme-toggle">
             <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
             <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
           </button>

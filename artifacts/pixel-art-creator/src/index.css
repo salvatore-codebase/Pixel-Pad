@@ -247,8 +247,17 @@ html.light {
   background: hsl(var(--muted-foreground));
 }
 
-/* Junior mode bright theme override */
+/* Junior mode — dark mode: global dark theme with Junior's purple palette */
 .junior-mode {
+  --primary: 280 80% 58%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 40 100% 55%;
+  --accent-foreground: 40 100% 15%;
+  --ring: 280 80% 58%;
+}
+
+/* Junior mode — light mode: bright kid-friendly blue-white theme */
+html.light .junior-mode {
   --background: 210 100% 97%;
   --foreground: 220 50% 20%;
   --card: 0 0% 100%;
@@ -258,14 +267,9 @@ html.light {
   --sidebar: 215 60% 92%;
   --sidebar-foreground: 220 50% 20%;
   --sidebar-border: 210 30% 78%;
-  --primary: 280 80% 58%;
-  --primary-foreground: 0 0% 100%;
   --secondary: 180 60% 85%;
   --secondary-foreground: 180 60% 25%;
   --muted: 210 30% 92%;
   --muted-foreground: 220 30% 50%;
-  --accent: 40 100% 55%;
-  --accent-foreground: 40 100% 15%;
   --input: 210 30% 82%;
-  --ring: 280 80% 58%;
 }

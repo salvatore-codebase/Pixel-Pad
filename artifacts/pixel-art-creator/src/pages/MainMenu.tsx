@@ -12,10 +12,22 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('pixelpad-theme') !== 'light');
 
+  // Apply saved theme on mount
   useEffect(() => {
     document.documentElement.classList.toggle('light', !darkMode);
-    localStorage.setItem('pixelpad-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleToggle = () => {
+    const newDark = !darkMode;
+    setDarkMode(newDark);
+    // Apply synchronously so the page responds immediately on click
+    if (newDark) {
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+    }
+    localStorage.setItem('pixelpad-theme', newDark ? 'dark' : 'light');
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background relative overflow-hidden">
@@ -31,13 +43,13 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         {/* Theme toggle — top-0 aligns its top with the top of PIXEL text; right-8 places it at the viewport's right edge */}
         <div className="absolute right-8 top-0">
           <button
-            onClick={() => setDarkMode(d => !d)}
+            onClick={handleToggle}
             className="inline-flex items-center rounded-full bg-muted border border-border p-1 gap-1 transition-colors hover:bg-muted/80"
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             data-testid="btn-menu-theme-toggle"
           >
-            <span className={cn("text-xl px-2 py-1 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
-            <span className={cn("text-xl px-2 py-1 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+            <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+            <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
           </button>
         </div>
 
