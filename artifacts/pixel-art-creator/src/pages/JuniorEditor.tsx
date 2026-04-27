@@ -271,7 +271,8 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={canvasAreaRef}
-            className="absolute inset-0 overflow-auto bg-gradient-to-br from-blue-50/10 to-purple-50/10"
+            className="absolute inset-0 bg-gradient-to-br from-blue-50/10 to-purple-50/10"
+            style={{ overflow: zoom >= 2 ? 'scroll' : 'auto' }}
           >
           <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
             <PixelCanvas

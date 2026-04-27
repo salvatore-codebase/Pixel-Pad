@@ -274,7 +274,8 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={canvasAreaRef}
-            className="absolute inset-0 overflow-auto bg-background/50"
+            className="absolute inset-0 bg-background/50"
+            style={{ overflow: zoom >= 2 ? 'scroll' : 'auto' }}
           >
           <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
             <PixelCanvas

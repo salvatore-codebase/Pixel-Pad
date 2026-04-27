@@ -147,12 +147,6 @@ export default function ShadeAndTintPicker({ baseColor, selectedColor, onSelectC
         />
       </div>
 
-      {/* Hue source indicator */}
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded border border-white/20 flex-shrink-0" style={{ backgroundColor: baseColor }} />
-        <span className="text-[10px] text-muted-foreground">Hue source: palette color</span>
-      </div>
-
       {/* Opacity bar */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
