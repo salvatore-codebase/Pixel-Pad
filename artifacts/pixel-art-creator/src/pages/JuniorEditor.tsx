@@ -196,26 +196,30 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   return (
     <div className="junior-mode min-h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-border bg-gradient-to-r from-purple-100/30 to-blue-100/30 flex-wrap flex-shrink-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-border bg-card/50 flex-wrap flex-shrink-0">
         <button onClick={onBack} className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" data-testid="btn-junior-back">← Back</button>
-        <div className="font-pixel text-xs text-[hsl(var(--primary))] hidden sm:block">JUNIOR MODE</div>
+        <div className="font-pixel text-xs text-primary hidden sm:block">JUNIOR MODE</div>
+        <span className="text-sm font-bold text-muted-foreground flex-shrink-0">Title:</span>
         <input
           type="text"
           value={projectName}
           onChange={e => { setProjectName(e.target.value); setSaved(false); }}
-          className="flex-1 max-w-40 text-sm font-bold bg-transparent border-b-2 border-transparent hover:border-purple-300 focus:border-purple-500 outline-none px-1"
+          className="flex-1 max-w-40 text-sm font-semibold bg-transparent border-b border-transparent hover:border-white/20 focus:border-primary outline-none px-1"
           data-testid="input-junior-name"
         />
         <div className="flex items-center gap-1 ml-auto flex-wrap">
-          <button onClick={undo} disabled={historyIndex <= 0} className="px-2 py-1 text-xs rounded-lg font-bold bg-yellow-200 text-yellow-800 hover:bg-yellow-300 disabled:opacity-40 transition-colors" data-testid="btn-junior-undo">⟲</button>
-          <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-2 py-1 text-xs rounded-lg font-bold bg-yellow-200 text-yellow-800 hover:bg-yellow-300 disabled:opacity-40 transition-colors" data-testid="btn-junior-redo">⟳</button>
-          <button onClick={() => setShowGrid(g => !g)} className={cn("px-2 py-1 text-xs rounded-lg font-bold transition-colors", showGrid ? "bg-blue-400 text-white" : "bg-blue-100 text-blue-700 hover:bg-blue-200")} data-testid="btn-junior-grid"># Grid</button>
-          <button onClick={zoomOut} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-out">−</button>
+          <button onClick={undo} disabled={historyIndex <= 0} className="px-2 py-1 text-xs rounded bg-yellow-200 text-yellow-800 hover:bg-yellow-300 disabled:opacity-40 transition-colors" title="Undo (Ctrl+Z)" data-testid="btn-junior-undo">⟲ Undo</button>
+          <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-2 py-1 text-xs rounded bg-yellow-200 text-yellow-800 hover:bg-yellow-300 disabled:opacity-40 transition-colors" title="Redo (Ctrl+Shift+Z)" data-testid="btn-junior-redo">⟳ Redo</button>
+          <button onClick={() => setShowGrid(g => !g)} className={cn("px-2 py-1 text-xs rounded transition-colors", showGrid ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80")} data-testid="btn-junior-grid"># Grid</button>
+          <button onClick={zoomOut} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-out">−</button>
           <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
-          <button onClick={zoomIn} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-in">+</button>
-          <button onClick={() => setDarkMode(d => !d)} className="px-2 py-1 text-xs rounded-lg font-bold bg-muted hover:bg-muted/80 transition-colors" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-junior-theme-toggle">{darkMode ? '☀️' : '🌙'}</button>
-          <button onClick={handleClear} className="px-2 py-1 text-xs rounded-lg font-bold bg-red-400 text-white hover:bg-red-500 transition-colors" data-testid="btn-junior-clear">🗑 Clear</button>
-          <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded-lg font-bold transition-colors", saved ? "bg-green-200 text-green-800" : "bg-green-500 text-white hover:bg-green-600")} data-testid="btn-junior-save">{saved ? '✓ Saved!' : '💾 Save!'}</button>
+          <button onClick={zoomIn} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-in">+</button>
+          <button onClick={() => setDarkMode(d => !d)} className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-junior-theme-toggle">
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+          </button>
+          <button onClick={handleClear} className="px-2 py-1 text-xs rounded bg-destructive/80 text-white hover:bg-destructive transition-colors" data-testid="btn-junior-clear">Clear</button>
+          <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded font-semibold transition-colors", saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90")} data-testid="btn-junior-save">{saved ? '✓ Saved' : '💾 Save'}</button>
         </div>
       </div>
 
@@ -233,8 +237,8 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
         )}
 
         {/* Left toolbar */}
-        <div className={cn("flex flex-col border-r-2 border-border bg-gradient-to-b from-purple-50/30 to-blue-50/30 transition-all duration-200 overflow-y-auto flex-shrink-0", toolbarMinimized ? "w-12" : "w-64")}>
-          <button onClick={() => setToolbarMinimized(m => !m)} className="p-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors border-b-2 border-border flex items-center justify-center bg-white/20" data-testid="btn-junior-minimize">
+        <div className={cn("flex flex-col border-r-2 border-border bg-card/30 transition-all duration-200 overflow-y-auto flex-shrink-0", toolbarMinimized ? "w-12" : "w-64")}>
+          <button onClick={() => setToolbarMinimized(m => !m)} className="p-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors border-b-2 border-border flex items-center justify-center" data-testid="btn-junior-minimize">
             {toolbarMinimized ? '▶' : '◀'}
           </button>
 
@@ -253,7 +257,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                       }}
                       className={cn(
                         "flex flex-col items-center gap-1 p-2 rounded-xl border-3 transition-all text-xs font-bold",
-                        activeTool === tool.id ? "border-purple-500 bg-purple-100 text-purple-800 scale-95 shadow-md" : "border-gray-200 bg-white/50 hover:bg-white/80 hover:border-gray-300 text-gray-700"
+                        activeTool === tool.id ? "border-purple-500 bg-purple-500/20 text-foreground scale-95 shadow-md" : "border-border bg-muted/40 hover:bg-muted/70 hover:border-border text-foreground"
                       )}
                       title={tool.tip}
                       data-testid={`junior-tool-${tool.id}`}
@@ -330,12 +334,12 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                 <button
                   key={tool.id}
                   onClick={() => { setActiveTool(tool.id); if (tool.id === 'stamp') setToolbarMinimized(false); }}
-                  className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all border-3", activeTool === tool.id ? "border-purple-500 bg-purple-100" : "border-transparent bg-white/50 hover:bg-white/80")}
+                  className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-base transition-all border-3", activeTool === tool.id ? "border-purple-500 bg-purple-500/20" : "border-transparent bg-muted/40 hover:bg-muted/70")}
                   title={tool.tip}
                   data-testid={`junior-tool-mini-${tool.id}`}
                 >{tool.icon}</button>
               ))}
-              <div className="w-9 h-9 rounded-xl border-4 border-white shadow mx-auto mt-1" style={{ backgroundColor: activeColor }} />
+              <div className="w-9 h-9 rounded-xl border-4 border-border shadow mx-auto mt-1" style={{ backgroundColor: activeColor }} />
             </div>
           )}
         </div>

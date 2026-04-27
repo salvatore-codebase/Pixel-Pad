@@ -207,6 +207,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card/50 flex-wrap flex-shrink-0">
         <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" data-testid="btn-editor-back">← Menu</button>
         <div className="font-pixel text-xs text-primary hidden sm:block">CREATIVE MODE</div>
+        <span className="text-sm font-bold text-muted-foreground flex-shrink-0">Title:</span>
         <input
           type="text"
           value={projectName}
@@ -221,7 +222,10 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
           <button onClick={zoomOut} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-out">−</button>
           <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
           <button onClick={zoomIn} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-in">+</button>
-          <button onClick={() => setDarkMode(d => !d)} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-theme-toggle">{darkMode ? '☀️' : '🌙'}</button>
+          <button onClick={() => setDarkMode(d => !d)} className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-theme-toggle">
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+          </button>
           <button onClick={handleClear} className="px-2 py-1 text-xs rounded bg-destructive/80 text-white hover:bg-destructive transition-colors" data-testid="btn-clear">Clear</button>
           <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded font-semibold transition-colors", saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90")} data-testid="btn-save">{saved ? '✓ Saved' : '💾 Save'}</button>
         </div>

@@ -68,7 +68,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10">
-            <div className="text-5xl mb-4">🦄</div>
+            <div className="text-5xl mb-4">🦕</div>
             <div className="font-pixel text-base text-chart-2 mb-3">JUNIOR</div>
             <div className="font-pixel text-base text-chart-2 mb-3">MODE</div>
             <p className="text-sm text-muted-foreground leading-relaxed">
