@@ -38,21 +38,21 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         <div className="absolute top-1/2 left-1/4 w-24 h-24 rounded-full bg-chart-2/10 blur-2xl" />
       </div>
 
-      {/* Logo — w-full so the absolute toggle reaches the right edge of the viewport */}
-      <div className="relative mb-12 w-full text-center z-10">
-        {/* Theme toggle — top-0 aligns its top with the top of PIXEL text; right-8 places it at the viewport's right edge */}
-        <div className="absolute right-8 top-0">
-          <button
-            onClick={handleToggle}
-            className="inline-flex items-center rounded-full bg-muted border border-border p-1 gap-1 transition-colors hover:bg-muted/80"
-            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            data-testid="btn-menu-theme-toggle"
-          >
-            <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
-            <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
-          </button>
-        </div>
+      {/* Theme toggle — fixed so it's always above everything and never blocked */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={handleToggle}
+          className="inline-flex items-center rounded-full bg-muted border border-border p-1 gap-1 transition-colors hover:bg-muted/80"
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          data-testid="btn-menu-theme-toggle"
+        >
+          <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+          <span className={cn("text-base px-2 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+        </button>
+      </div>
 
+      {/* Logo */}
+      <div className="relative mb-12 w-full text-center z-10">
         <div className="font-pixel text-2xl md:text-4xl text-primary mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
           PIXEL
         </div>
