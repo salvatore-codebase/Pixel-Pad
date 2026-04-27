@@ -56,7 +56,7 @@ export default function StampPanel({ selectedStamp, onSelectStamp }: StampPanelP
               "flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all",
               selectedStamp?.id === stamp.id
                 ? "border-primary bg-primary/20 scale-95"
-                : "border-transparent bg-muted/40 hover:bg-muted/80 hover:border-white/20"
+                : "border-transparent bg-muted/40 hover:bg-muted/80 hover:border-border"
             )}
             title={stamp.name}
             data-testid={`stamp-${stamp.id}`}

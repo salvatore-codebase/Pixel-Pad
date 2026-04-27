@@ -315,12 +315,12 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                     step={1}
                     value={thickness}
                     onChange={e => setThickness(Number(e.target.value))}
-                    className="w-full accent-purple-500"
+                    className="w-full accent-primary"
                     data-testid="junior-slider-thickness"
                   />
                   <div className="flex justify-between px-0.5 mt-0.5">
                     {[1,2,3,4,5,6].map(n => (
-                      <span key={n} className={cn("text-[9px]", thickness === n ? "text-purple-500 font-extrabold" : "text-muted-foreground")}>{n}</span>
+                      <span key={n} className={cn("text-[9px]", thickness === n ? "text-primary font-extrabold" : "text-muted-foreground")}>{n}</span>
                     ))}
                   </div>
                 </div>

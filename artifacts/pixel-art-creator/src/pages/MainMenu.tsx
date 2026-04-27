@@ -32,12 +32,12 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         <div className="absolute right-8 top-0">
           <button
             onClick={() => setDarkMode(d => !d)}
-            className="inline-flex items-center rounded-full bg-muted border border-border p-0.5 gap-0.5 transition-colors hover:bg-muted/80"
+            className="inline-flex items-center rounded-full bg-muted border border-border p-1 gap-1 transition-colors hover:bg-muted/80"
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             data-testid="btn-menu-theme-toggle"
           >
-            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
-            <span className={cn("text-xs px-1.5 py-0.5 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
+            <span className={cn("text-xl px-2 py-1 rounded-full transition-all leading-none select-none", !darkMode ? "bg-background shadow-sm" : "opacity-40")}>☀️</span>
+            <span className={cn("text-xl px-2 py-1 rounded-full transition-all leading-none select-none", darkMode ? "bg-background shadow-sm" : "opacity-40")}>🌙</span>
           </button>
         </div>
 
@@ -105,7 +105,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
 
       {/* Gallery button */}
       <button
-        className="mt-8 relative z-10 flex items-center gap-3 px-6 py-3 rounded-xl border border-white/10 bg-card/60 hover:bg-card/90 hover:border-white/20 transition-all backdrop-blur-sm"
+        className="mt-8 relative z-10 flex items-center gap-3 px-6 py-3 rounded-xl border border-border bg-card/60 hover:bg-card/90 hover:border-foreground/20 transition-all backdrop-blur-sm"
         onClick={onOpenGallery}
         data-testid="btn-open-gallery"
       >
