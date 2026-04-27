@@ -15,7 +15,6 @@ interface JuniorEditorProps {
 
 const TOOLS: Array<{ id: ToolJunior; label: string; icon: string; tip: string }> = [
   { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw pixels' },
-  { id: 'eraser', label: 'Erase', icon: '🧹', tip: 'Erase pixels' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Fill with color' },
   { id: 'stamp', label: 'Stamp', icon: '🎭', tip: 'Stamp a shape' },
   { id: 'circle', label: 'Circle', icon: '⭕', tip: 'Draw a circle dot' },
@@ -23,15 +22,18 @@ const TOOLS: Array<{ id: ToolJunior; label: string; icon: string; tip: string }>
   { id: 'star', label: 'Star', icon: '⭐', tip: 'Draw a star' },
   { id: 'rainbow', label: 'Rainbow', icon: '🌈', tip: 'Rainbow pen!' },
   { id: 'hand', label: 'Pan', icon: '✋', tip: 'Grab and scroll canvas' },
+  { id: 'eraser', label: 'Erase', icon: '🧹', tip: 'Erase pixels' },
 ];
 
 export default function JuniorEditor({ project, allProjects, onProjectsChange, onBack }: JuniorEditorProps) {
   const [grid, setGrid] = useState(project.grid);
   const [activeTool, setActiveTool] = useState<ToolJunior>('pen');
   const [activeColor, setActiveColor] = useState(JUNIOR_COLORS[0]);
+  const [thickness, setThickness] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('pixelpad-theme') !== 'light');
   const [customColors, setCustomColors] = useState<string[]>([...JUNIOR_COLORS]);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [showStamps, setShowStamps] = useState(false);
@@ -168,6 +170,11 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   }, [project, projectName, grid, allProjects, onProjectsChange]);
 
   useEffect(() => {
+    document.documentElement.classList.toggle('light', !darkMode);
+    localStorage.setItem('pixelpad-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
@@ -206,6 +213,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
           <button onClick={zoomOut} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-out">−</button>
           <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
           <button onClick={zoomIn} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-in">+</button>
+          <button onClick={() => setDarkMode(d => !d)} className="px-2 py-1 text-xs rounded-lg font-bold bg-muted hover:bg-muted/80 transition-colors" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-junior-theme-toggle">{darkMode ? '☀️' : '🌙'}</button>
           <button onClick={handleClear} className="px-2 py-1 text-xs rounded-lg font-bold bg-red-400 text-white hover:bg-red-500 transition-colors" data-testid="btn-junior-clear">🗑 Clear</button>
           <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded-lg font-bold transition-colors", saved ? "bg-green-200 text-green-800" : "bg-green-500 text-white hover:bg-green-600")} data-testid="btn-junior-save">{saved ? '✓ Saved!' : '💾 Save!'}</button>
         </div>
@@ -292,6 +300,26 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                     />
                   </label>
                 </div>
+
+                {/* Thickness slider */}
+                <div className="mt-2">
+                  <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide mb-1">Thickness</div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={6}
+                    step={1}
+                    value={thickness}
+                    onChange={e => setThickness(Number(e.target.value))}
+                    className="w-full accent-purple-500"
+                    data-testid="junior-slider-thickness"
+                  />
+                  <div className="flex justify-between px-0.5 mt-0.5">
+                    {[1,2,3,4,5,6].map(n => (
+                      <span key={n} className={cn("text-[9px]", thickness === n ? "text-purple-500 font-extrabold" : "text-muted-foreground")}>{n}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -332,6 +360,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
               showGrid={showGrid}
               activeTool={activeTool}
               activeColor={activeColor}
+              thickness={thickness}
               selectedStamp={selectedStamp}
               onGridChange={handleGridChange}
             />

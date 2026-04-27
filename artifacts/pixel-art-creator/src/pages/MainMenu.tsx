@@ -51,7 +51,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
               Professional tools for artists. Pen, eraser, blotch tool, fill, line drawing, and a full color spectrum with 20 custom palette slots.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {['Pen','Eraser','Blotch','Fill','Line','Eyedropper'].map(tool => (
+              {['Pen','Marker','Blotch','Fill','Line','Eraser'].map(tool => (
                 <span key={tool} className="text-xs bg-primary/20 text-primary rounded px-2 py-0.5">{tool}</span>
               ))}
             </div>
@@ -68,7 +68,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10">
-            <div className="text-5xl mb-4">🌈</div>
+            <div className="text-5xl mb-4">🦄</div>
             <div className="font-pixel text-base text-chart-2 mb-3">JUNIOR</div>
             <div className="font-pixel text-base text-chart-2 mb-3">MODE</div>
             <p className="text-sm text-muted-foreground leading-relaxed">

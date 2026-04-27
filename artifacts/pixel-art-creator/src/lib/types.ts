@@ -1,6 +1,6 @@
 export type Mode = 'menu' | 'creative' | 'junior';
 
-export type ToolCreative = 'pen' | 'eraser' | 'blotch' | 'fill' | 'eyedropper' | 'line' | 'hand' | 'airbrush' | 'watercolor';
+export type ToolCreative = 'pen' | 'eraser' | 'blotch' | 'fill' | 'marker' | 'line' | 'hand' | 'airbrush' | 'watercolor';
 export type ToolJunior = 'pen' | 'eraser' | 'fill' | 'stamp' | 'star' | 'circle' | 'square' | 'rainbow' | 'hand';
 
 export interface PixelGrid {

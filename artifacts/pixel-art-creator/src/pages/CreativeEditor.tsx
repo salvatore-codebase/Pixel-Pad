@@ -16,14 +16,14 @@ interface CreativeEditorProps {
 
 const TOOLS: Array<{ id: ToolCreative; label: string; icon: string; tip: string }> = [
   { id: 'pen', label: 'Pencil', icon: '✏️', tip: 'Draw single pixels' },
-  { id: 'eraser', label: 'Eraser', icon: '🧹', tip: 'Erase pixels' },
   { id: 'blotch', label: 'Blotch', icon: '🧽', tip: 'Blend & texture pixels' },
   { id: 'airbrush', label: 'Airbrush', icon: '🌫️', tip: 'Spray paint effect' },
   { id: 'watercolor', label: 'Waterclr', icon: '🎨', tip: 'Soft watercolor brush' },
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Flood fill an area' },
   { id: 'line', label: 'Line', icon: '📏', tip: 'Draw a straight line' },
-  { id: 'eyedropper', label: 'Pick', icon: '💉', tip: 'Pick color from canvas' },
+  { id: 'marker', label: 'Marker', icon: '🖊️', tip: 'Bold opaque marker strokes' },
   { id: 'hand', label: 'Pan', icon: '✋', tip: 'Grab and scroll canvas' },
+  { id: 'eraser', label: 'Eraser', icon: '🧹', tip: 'Erase pixels' },
 ];
 
 export default function CreativeEditor({ project, allProjects, onProjectsChange, onBack }: CreativeEditorProps) {
@@ -33,9 +33,11 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [activeColor, setActiveColor] = useState(palette.colors[0] || '#FF0000');
   const [paletteBasisColor, setPaletteBasisColor] = useState(palette.colors[0] || '#FF0000');
   const [opacity, setOpacity] = useState(100);
+  const [thickness, setThickness] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('pixelpad-theme') !== 'light');
   const [history, setHistory] = useState<string[][]>([project.grid.data]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
@@ -181,6 +183,11 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   };
 
   useEffect(() => {
+    document.documentElement.classList.toggle('light', !darkMode);
+    localStorage.setItem('pixelpad-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
@@ -214,6 +221,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
           <button onClick={zoomOut} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-out">−</button>
           <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
           <button onClick={zoomIn} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-in">+</button>
+          <button onClick={() => setDarkMode(d => !d)} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} data-testid="btn-theme-toggle">{darkMode ? '☀️' : '🌙'}</button>
           <button onClick={handleClear} className="px-2 py-1 text-xs rounded bg-destructive/80 text-white hover:bg-destructive transition-colors" data-testid="btn-clear">Clear</button>
           <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded font-semibold transition-colors", saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90")} data-testid="btn-save">{saved ? '✓ Saved' : '💾 Save'}</button>
         </div>
@@ -258,6 +266,26 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                   onSelectColor={handlePaletteSelect}
                   onUpdateColor={handlePaletteUpdate}
                 />
+              </div>
+
+              {/* Thickness slider */}
+              <div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Thickness</div>
+                <input
+                  type="range"
+                  min={1}
+                  max={6}
+                  step={1}
+                  value={thickness}
+                  onChange={e => setThickness(Number(e.target.value))}
+                  className="w-full accent-primary"
+                  data-testid="slider-thickness"
+                />
+                <div className="flex justify-between px-0.5 mt-0.5">
+                  {[1,2,3,4,5,6].map(n => (
+                    <span key={n} className={cn("text-[9px]", thickness === n ? "text-primary font-bold" : "text-muted-foreground")}>{n}</span>
+                  ))}
+                </div>
               </div>
 
               {/* HSV Color Picker + Opacity */}
@@ -310,8 +338,8 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
               activeTool={activeTool}
               activeColor={activeColor}
               opacity={opacity}
+              thickness={thickness}
               onGridChange={handleGridChange}
-              onPickColor={(color) => { setActiveColor(color); setPaletteBasisColor(color); setActiveTool('pen'); }}
             />
           </div>
           </div>

@@ -141,6 +141,27 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* Light mode overrides — applied via html.light class */
+html.light {
+  --background: 220 20% 96%;
+  --foreground: 225 25% 15%;
+  --border: 225 15% 80%;
+  --card: 0 0% 100%;
+  --card-foreground: 225 25% 15%;
+  --card-border: 225 15% 85%;
+  --sidebar: 225 20% 92%;
+  --sidebar-foreground: 225 25% 20%;
+  --sidebar-border: 225 15% 78%;
+  --muted: 220 15% 90%;
+  --muted-foreground: 225 12% 42%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 225 25% 15%;
+  --popover-border: 225 15% 85%;
+  --input: 225 15% 82%;
+  --button-outline: rgba(0,0,0,0.15);
+  --opaque-button-border-intensity: 8;
+}
+
 @layer base {
   * {
     @apply border-border;

@@ -10,9 +10,9 @@ interface PixelCanvasProps {
   activeTool: ToolCreative | ToolJunior;
   activeColor: string;
   opacity?: number; // 0-100, default 100
+  thickness?: number; // 1-6, default 1
   selectedStamp?: StampShape | null;
   onGridChange: (newData: string[], pushHistory?: boolean) => void;
-  onPickColor?: (color: string) => void;
 }
 
 const RAINBOW_COLORS = ['#FF0000','#FF6600','#FFFF00','#00CC00','#0099FF','#9900FF','#FF00CC'];
@@ -24,9 +24,9 @@ export default function PixelCanvas({
   activeTool,
   activeColor,
   opacity = 100,
+  thickness = 1,
   selectedStamp,
   onGridChange,
-  onPickColor,
 }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -124,14 +124,49 @@ export default function PixelCanvas({
     let newData = [...grid.data];
     const tool = activeTool;
     const alpha = opacity / 100;
+    const brushRadius = Math.max(0, thickness - 1);
+
+    // Paint a brush-circle of pixels at (px, py)
+    const paintAt = (data: string[], px: number, py: number, color: string, blend: number) => {
+      const applyPixel = (nx: number, ny: number) => {
+        if (nx < 0 || nx >= grid.width || ny < 0 || ny >= grid.height) return;
+        const idx = ny * grid.width + nx;
+        data[idx] = blend < 1 ? blendColors(data[idx], color, blend) : color;
+      };
+      if (brushRadius === 0) { applyPixel(px, py); return; }
+      for (let dy = -brushRadius; dy <= brushRadius; dy++)
+        for (let dx = -brushRadius; dx <= brushRadius; dx++)
+          if (dx * dx + dy * dy <= brushRadius * brushRadius) applyPixel(px + dx, py + dy);
+    };
+
+    // Erase a brush-circle of pixels at (px, py)
+    const eraseAt = (data: string[], px: number, py: number) => {
+      const clearPixel = (nx: number, ny: number) => {
+        if (nx < 0 || nx >= grid.width || ny < 0 || ny >= grid.height) return;
+        data[ny * grid.width + nx] = '';
+      };
+      if (brushRadius === 0) { clearPixel(px, py); return; }
+      for (let dy = -brushRadius; dy <= brushRadius; dy++)
+        for (let dx = -brushRadius; dx <= brushRadius; dx++)
+          if (dx * dx + dy * dy <= brushRadius * brushRadius) clearPixel(px + dx, py + dy);
+    };
+
+    // Bresenham line from (x0,y0) to (x1,y1) calling fn at each step
+    const bresenham = (x0: number, y0: number, x1: number, y1: number, fn: (px: number, py: number) => void) => {
+      let cx = x0, cy = y0;
+      const adx = Math.abs(x1 - cx), ady = Math.abs(y1 - cy);
+      const sx2 = cx < x1 ? 1 : -1, sy2 = cy < y1 ? 1 : -1;
+      let err2 = adx - ady;
+      while (true) {
+        fn(cx, cy);
+        if (cx === x1 && cy === y1) break;
+        const e2 = 2 * err2;
+        if (e2 > -ady) { err2 -= ady; cx += sx2; }
+        if (e2 < adx) { err2 += adx; cy += sy2; }
+      }
+    };
 
     if (tool === 'hand') return;
-
-    if (tool === 'eyedropper') {
-      const color = grid.data[y * grid.width + x];
-      if (color && onPickColor) onPickColor(color);
-      return;
-    }
 
     if (tool === 'fill') {
       newData = floodFill(newData, grid.width, grid.height, x, y, activeColor);
@@ -152,7 +187,7 @@ export default function PixelCanvas({
     }
 
     if (tool === 'blotch') {
-      newData = blotchPixels(newData, grid.width, grid.height, x, y, activeColor, 2, alpha);
+      newData = blotchPixels(newData, grid.width, grid.height, x, y, activeColor, Math.max(2, brushRadius + 2), alpha);
       onGridChange(newData, false);
       return;
     }
@@ -170,37 +205,36 @@ export default function PixelCanvas({
     }
 
     if (tool === 'eraser') {
-      newData[y * grid.width + x] = '';
+      if (!isFirst && lastPixel.current) {
+        bresenham(lastPixel.current.x, lastPixel.current.y, x, y, (px, py) => eraseAt(newData, px, py));
+      } else {
+        eraseAt(newData, x, y);
+      }
       onGridChange(newData, false);
       return;
     }
 
     if (tool === 'circle') {
       const r = 2;
-      for (let dy = -r; dy <= r; dy++) {
-        for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++)
+        for (let dx = -r; dx <= r; dx++)
           if (dx * dx + dy * dy <= r * r) {
             const nx = x + dx, ny = y + dy;
-            if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height) {
+            if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height)
               newData[ny * grid.width + nx] = activeColor;
-            }
           }
-        }
-      }
       onGridChange(newData, true);
       return;
     }
 
     if (tool === 'square') {
       const r = 2;
-      for (let dy = -r; dy <= r; dy++) {
+      for (let dy = -r; dy <= r; dy++)
         for (let dx = -r; dx <= r; dx++) {
           const nx = x + dx, ny = y + dy;
-          if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height) {
+          if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height)
             newData[ny * grid.width + nx] = activeColor;
-          }
         }
-      }
       onGridChange(newData, true);
       return;
     }
@@ -213,9 +247,8 @@ export default function PixelCanvas({
       ];
       for (const [dx, dy] of starPoints) {
         const nx = x + dx, ny = y + dy;
-        if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height) {
+        if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height)
           newData[ny * grid.width + nx] = activeColor;
-        }
       }
       onGridChange(newData, true);
       return;
@@ -230,34 +263,29 @@ export default function PixelCanvas({
     }
 
     if (tool === 'pen') {
-      const applyPenColor = (data: string[], px: number, py: number) => {
-        const idx = py * grid.width + px;
-        data[idx] = alpha < 1 ? blendColors(data[idx], activeColor, alpha) : activeColor;
-      };
       if (!isFirst && lastPixel.current) {
-        // Bresenham line with per-pixel opacity blending
-        const { x: x0, y: y0 } = lastPixel.current;
-        let cx = x0, cy = y0;
-        const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
-        const sx2 = cx < x ? 1 : -1, sy2 = cy < y ? 1 : -1;
-        let err2 = dx - dy;
-        while (true) {
-          if (cx >= 0 && cx < grid.width && cy >= 0 && cy < grid.height) applyPenColor(newData, cx, cy);
-          if (cx === x && cy === y) break;
-          const e2 = 2 * err2;
-          if (e2 > -dy) { err2 -= dy; cx += sx2; }
-          if (e2 < dx) { err2 += dx; cy += sy2; }
-        }
+        bresenham(lastPixel.current.x, lastPixel.current.y, x, y, (px, py) => paintAt(newData, px, py, activeColor, alpha));
       } else {
-        applyPenColor(newData, x, y);
+        paintAt(newData, x, y, activeColor, alpha);
       }
       onGridChange(newData, false);
+      return;
+    }
+
+    if (tool === 'marker') {
+      if (!isFirst && lastPixel.current) {
+        bresenham(lastPixel.current.x, lastPixel.current.y, x, y, (px, py) => paintAt(newData, px, py, activeColor, 1));
+      } else {
+        paintAt(newData, x, y, activeColor, 1);
+      }
+      onGridChange(newData, false);
+      return;
     }
 
     if (tool === 'line') {
       if (isFirst) lineStart.current = { x, y };
     }
-  }, [grid, activeTool, activeColor, opacity, selectedStamp, onGridChange, onPickColor]);
+  }, [grid, activeTool, activeColor, opacity, thickness, selectedStamp, onGridChange]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -311,7 +339,7 @@ export default function PixelCanvas({
   const handleMouseLeave = useCallback(() => {
     setStampPreview(null);
     if (!isDrawing.current) return;
-    if (['pen', 'eraser', 'blotch', 'rainbow', 'airbrush', 'watercolor'].includes(activeTool)) {
+    if (['pen', 'marker', 'eraser', 'blotch', 'rainbow', 'airbrush', 'watercolor'].includes(activeTool)) {
       onGridChange(grid.data, true);
     }
     isDrawing.current = false;
@@ -339,7 +367,7 @@ export default function PixelCanvas({
 
   const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (['pen', 'eraser', 'blotch', 'rainbow', 'airbrush', 'watercolor'].includes(activeTool)) {
+    if (['pen', 'marker', 'eraser', 'blotch', 'rainbow', 'airbrush', 'watercolor'].includes(activeTool)) {
       onGridChange(grid.data, true);
     }
     isDrawing.current = false;
@@ -348,7 +376,7 @@ export default function PixelCanvas({
 
   let cursor = 'crosshair';
   if (activeTool === 'eraser') cursor = 'cell';
-  if (activeTool === 'eyedropper') cursor = 'copy';
+  if (activeTool === 'marker') cursor = 'crosshair';
   if (activeTool === 'fill') cursor = 'cell';
   if (activeTool === 'stamp') cursor = 'copy';
   if (activeTool === 'hand') cursor = 'grab';
