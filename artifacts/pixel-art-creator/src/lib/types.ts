@@ -39,9 +39,16 @@ export interface StampShape {
 
 export const CANVAS_WIDTH = 32;
 export const CANVAS_HEIGHT = 32;
-export const MAX_HISTORY = 50;
+export const CREATIVE_CANVAS_WIDTH = 640;
+export const CREATIVE_CANVAS_HEIGHT = 360;
+export const JUNIOR_CANVAS_WIDTH = 320;
+export const JUNIOR_CANVAS_HEIGHT = 180;
+export const MAX_HISTORY = 10;
 export const MAX_PROJECTS = 32;
 export const GALLERY_PER_PAGE = 18;
+export const CREATIVE_MAX_ZOOM = 16;
+export const JUNIOR_MAX_ZOOM = 10;
+export const MIN_ZOOM = 0.5;
 
 export const DEFAULT_CREATIVE_PALETTE: string[] = [
   '#FF0000', '#FF6600', '#FFFF00', '#00FF00',

@@ -22,10 +22,10 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
       {/* Logo */}
       <div className="mb-12 text-center relative z-10">
         <div className="font-pixel text-2xl md:text-4xl text-primary mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
-          PIXEL ART
+          PIXEL
         </div>
         <div className="font-pixel text-xl md:text-3xl text-accent drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]">
-          CREATOR
+          PAD
         </div>
         <div className="mt-4 text-muted-foreground text-sm">
           Choose your creative adventure

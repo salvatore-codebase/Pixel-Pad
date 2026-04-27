@@ -28,7 +28,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 
 ## Artifacts
 
-### Pixel Art Creator (`artifacts/pixel-art-creator`)
+### Pixel Pad (`artifacts/pixel-art-creator`)
 - **Preview path**: `/`
 - **Type**: React + Vite (frontend-only, no backend needed)
 - **Persistence**: localStorage (browser-local storage)

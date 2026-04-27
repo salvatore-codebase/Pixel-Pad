@@ -1,5 +1,5 @@
 import type { Project, PixelGrid, CustomPalette } from './types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, DEFAULT_CREATIVE_PALETTE, MAX_PROJECTS } from './types';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CREATIVE_CANVAS_WIDTH, CREATIVE_CANVAS_HEIGHT, JUNIOR_CANVAS_WIDTH, JUNIOR_CANVAS_HEIGHT, DEFAULT_CREATIVE_PALETTE, MAX_PROJECTS } from './types';
 
 const STORAGE_KEY = 'pixel-art-projects';
 
@@ -38,11 +38,13 @@ export function createEmptyPalette(): CustomPalette {
 }
 
 export function createNewProject(name: string, mode: 'creative' | 'junior'): Project {
+  const width = mode === 'creative' ? CREATIVE_CANVAS_WIDTH : JUNIOR_CANVAS_WIDTH;
+  const height = mode === 'creative' ? CREATIVE_CANVAS_HEIGHT : JUNIOR_CANVAS_HEIGHT;
   return {
     id: crypto.randomUUID(),
     name,
     mode,
-    grid: createEmptyGrid(),
+    grid: createEmptyGrid(width, height),
     palette: createEmptyPalette(),
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -75,27 +77,27 @@ export function deleteProject(projects: Project[], id: string): Project[] {
   return updated;
 }
 
-export function generateThumbnail(grid: PixelGrid, size = 90): string {
+export function generateThumbnail(grid: PixelGrid, thumbW = 160, thumbH = 90): string {
   const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = thumbW;
+  canvas.height = thumbH;
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
-  const pixelSize = size / grid.width;
+  const pxW = thumbW / grid.width;
+  const pxH = thumbH / grid.height;
 
-  // Checkerboard background
   for (let y = 0; y < grid.height; y++) {
     for (let x = 0; x < grid.width; x++) {
       const idx = y * grid.width + x;
       const color = grid.data[idx];
       if (color) {
         ctx.fillStyle = color;
-        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        ctx.fillRect(x * pxW, y * pxH, pxW, pxH);
       } else {
         const light = (x + y) % 2 === 0;
         ctx.fillStyle = light ? '#cccccc' : '#aaaaaa';
-        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        ctx.fillRect(x * pxW, y * pxH, pxW, pxH);
       }
     }
   }

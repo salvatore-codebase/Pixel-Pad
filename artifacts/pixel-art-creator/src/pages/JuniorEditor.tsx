@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { Project, ToolJunior, StampShape } from "@/lib/types";
-import { MAX_HISTORY, JUNIOR_COLORS } from "@/lib/types";
+import { MAX_HISTORY, JUNIOR_MAX_ZOOM, MIN_ZOOM, JUNIOR_COLORS } from "@/lib/types";
 import { createEmptyGrid, generateThumbnail, saveProject } from "@/lib/storage";
 import PixelCanvas from "@/components/PixelCanvas";
 import StampPanel from "@/components/StampPanel";
@@ -28,7 +28,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   const [grid, setGrid] = useState(project.grid);
   const [activeTool, setActiveTool] = useState<ToolJunior>('pen');
   const [activeColor, setActiveColor] = useState(JUNIOR_COLORS[0]);
-  const [zoom, setZoom] = useState(14);
+  const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
   const [showStamps, setShowStamps] = useState(false);
@@ -37,6 +37,22 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
   const [saved, setSaved] = useState(true);
+  const canvasAreaRef = useRef<HTMLDivElement>(null);
+  const zoomInitialized = useRef(false);
+
+  useEffect(() => {
+    if (zoomInitialized.current) return;
+    const el = canvasAreaRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    if (width === 0 || height === 0) return;
+    const fitW = (width * 0.95) / grid.width;
+    const fitH = (height * 0.95) / grid.height;
+    const fit = Math.min(fitW, fitH);
+    const clamped = Math.max(MIN_ZOOM, Math.min(JUNIOR_MAX_ZOOM, fit));
+    setZoom(parseFloat(clamped.toFixed(2)));
+    zoomInitialized.current = true;
+  }, [grid.width, grid.height]);
 
   const pushHistory = useCallback((newData: string[]) => {
     setHistory(prev => {
@@ -51,9 +67,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
   const handleGridChange = useCallback((newData: string[], pushHist = false) => {
     setGrid(prev => ({ ...prev, data: newData }));
     setSaved(false);
-    if (pushHist) {
-      pushHistory(newData);
-    }
+    if (pushHist) pushHistory(newData);
   }, [pushHistory]);
 
   const undo = useCallback(() => {
@@ -102,13 +116,29 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
     setActiveTool('stamp');
   };
 
-  const zoomIn = () => setZoom(z => Math.min(28, z + 2));
-  const zoomOut = () => setZoom(z => Math.max(6, z - 2));
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 0.25 : -0.25;
+    setZoom(prev => {
+      const next = prev + step;
+      return parseFloat(Math.max(MIN_ZOOM, Math.min(JUNIOR_MAX_ZOOM, next)).toFixed(2));
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = canvasAreaRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
+  const zoomIn = () => setZoom(z => parseFloat(Math.min(JUNIOR_MAX_ZOOM, z + 0.5).toFixed(2)));
+  const zoomOut = () => setZoom(z => parseFloat(Math.max(MIN_ZOOM, z - 0.5).toFixed(2)));
 
   return (
     <div className="junior-mode min-h-screen flex flex-col bg-background overflow-hidden">
-      {/* Colorful header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-border bg-gradient-to-r from-purple-100/30 to-blue-100/30 flex-wrap">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-border bg-gradient-to-r from-purple-100/30 to-blue-100/30 flex-wrap flex-shrink-0">
         <button
           onClick={onBack}
           className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
@@ -147,6 +177,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
             data-testid="btn-junior-grid"
           ># Grid</button>
           <button onClick={zoomOut} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-out">−</button>
+          <span className="text-xs text-muted-foreground w-10 text-center">{zoom}x</span>
           <button onClick={zoomIn} className="px-2 py-1 text-base rounded-lg bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-junior-zoom-in">+</button>
           <button onClick={handleClear} className="px-2 py-1 text-xs rounded-lg font-bold bg-red-400 text-white hover:bg-red-500 transition-colors" data-testid="btn-junior-clear">🗑 Clear</button>
           <button
@@ -163,7 +194,7 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
         {/* Left toolbar */}
         <div
           className={cn(
-            "flex flex-col border-r-2 border-border bg-gradient-to-b from-purple-50/30 to-blue-50/30 transition-all duration-200 overflow-y-auto",
+            "flex flex-col border-r-2 border-border bg-gradient-to-b from-purple-50/30 to-blue-50/30 transition-all duration-200 overflow-y-auto flex-shrink-0",
             toolbarMinimized ? "w-12" : "w-64"
           )}
         >
@@ -177,7 +208,6 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
 
           {!toolbarMinimized && (
             <div className="p-3 flex flex-col gap-4">
-              {/* Tool grid */}
               <div>
                 <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide mb-2">Tools</div>
                 <div className="grid grid-cols-2 gap-2">
@@ -205,7 +235,6 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                 </div>
               </div>
 
-              {/* Colors */}
               <div>
                 <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wide mb-2">Colors</div>
                 <div className="flex items-center gap-2 mb-3">
@@ -228,7 +257,6 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
                 </div>
               </div>
 
-              {/* Stamps panel */}
               {showStamps && activeTool === 'stamp' && (
                 <div className="border-t-2 border-border pt-3">
                   <StampPanel selectedStamp={selectedStamp} onSelectStamp={handleSelectStamp} />
@@ -258,17 +286,24 @@ export default function JuniorEditor({ project, allProjects, onProjectsChange, o
           )}
         </div>
 
-        {/* Canvas area */}
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4 bg-gradient-to-br from-blue-50/10 to-purple-50/10">
-          <PixelCanvas
-            grid={grid}
-            zoom={zoom}
-            showGrid={showGrid}
-            activeTool={activeTool}
-            activeColor={activeColor}
-            selectedStamp={selectedStamp}
-            onGridChange={handleGridChange}
-          />
+        {/* Canvas area — scrollable, 95% of available space */}
+        <div
+          ref={canvasAreaRef}
+          className="flex-1 overflow-auto bg-gradient-to-br from-blue-50/10 to-purple-50/10"
+        >
+          <div
+            style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}
+          >
+            <PixelCanvas
+              grid={grid}
+              zoom={zoom}
+              showGrid={showGrid}
+              activeTool={activeTool}
+              activeColor={activeColor}
+              selectedStamp={selectedStamp}
+              onGridChange={handleGridChange}
+            />
+          </div>
         </div>
       </div>
     </div>

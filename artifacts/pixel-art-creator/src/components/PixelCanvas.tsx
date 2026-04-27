@@ -35,8 +35,8 @@ export default function PixelCanvas({
   const [stampPreview, setStampPreview] = useState<{ x: number; y: number } | null>(null);
 
   const pixelSize = zoom;
-  const canvasWidth = grid.width * pixelSize;
-  const canvasHeight = grid.height * pixelSize;
+  const canvasWidth = Math.round(grid.width * pixelSize);
+  const canvasHeight = Math.round(grid.height * pixelSize);
 
   const getPixelCoords = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
