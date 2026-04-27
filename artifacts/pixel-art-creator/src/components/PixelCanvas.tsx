@@ -236,12 +236,13 @@ export default function PixelCanvas({
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (activeTool === 'hand') return;
     const coords = getPixelCoords(e);
     if (!coords) return;
     isDrawing.current = true;
     lastPixel.current = coords;
     applyTool(coords.x, coords.y, true);
-  }, [getPixelCoords, applyTool]);
+  }, [getPixelCoords, applyTool, activeTool]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -332,6 +333,7 @@ export default function PixelCanvas({
   if (activeTool === 'eyedropper') cursor = 'copy';
   if (activeTool === 'fill') cursor = 'cell';
   if (activeTool === 'stamp') cursor = 'copy';
+  if (activeTool === 'hand') cursor = 'grab';
 
   return (
     <canvas

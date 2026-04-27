@@ -4,7 +4,7 @@ import type { Project, ToolCreative } from "@/lib/types";
 import { MAX_HISTORY, CREATIVE_MAX_ZOOM, MIN_ZOOM } from "@/lib/types";
 import { createEmptyGrid, generateThumbnail, saveProject } from "@/lib/storage";
 import PixelCanvas from "@/components/PixelCanvas";
-import ColorSpectrum from "@/components/ColorSpectrum";
+import ShadeAndTintPicker from "@/components/ShadeAndTintPicker";
 import CustomPalettePanel from "@/components/CustomPalettePanel";
 
 interface CreativeEditorProps {
@@ -21,6 +21,7 @@ const TOOLS: Array<{ id: ToolCreative; label: string; icon: string; tip: string 
   { id: 'fill', label: 'Fill', icon: '🪣', tip: 'Flood fill an area' },
   { id: 'line', label: 'Line', icon: '📏', tip: 'Draw a straight line' },
   { id: 'eyedropper', label: 'Pick', icon: '💉', tip: 'Pick color from canvas' },
+  { id: 'hand', label: 'Pan', icon: '✋', tip: 'Grab and scroll canvas' },
 ];
 
 export default function CreativeEditor({ project, allProjects, onProjectsChange, onBack }: CreativeEditorProps) {
@@ -28,6 +29,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [palette, setPalette] = useState(project.palette);
   const [activeTool, setActiveTool] = useState<ToolCreative>('pen');
   const [activeColor, setActiveColor] = useState(palette.colors[0] || '#FF0000');
+  const [paletteBasisColor, setPaletteBasisColor] = useState(palette.colors[0] || '#FF0000');
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
   const [toolbarMinimized, setToolbarMinimized] = useState(false);
@@ -35,23 +37,75 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const [historyIndex, setHistoryIndex] = useState(0);
   const [projectName, setProjectName] = useState(project.name);
   const [saved, setSaved] = useState(true);
+  const [squareSize, setSquareSize] = useState(0);
+
   const currentProjectId = useRef(project.id);
   const canvasAreaRef = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
   const zoomInitialized = useRef(false);
 
+  // Measure outer wrapper to compute square size
   useEffect(() => {
-    if (zoomInitialized.current) return;
+    const el = outerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSquareSize(Math.min(width, height));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-fit initial integer zoom once we know the square size
+  useEffect(() => {
+    if (squareSize <= 0 || zoomInitialized.current) return;
+    const maxDim = Math.max(grid.width, grid.height);
+    const fit = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, Math.floor((squareSize * 0.95) / maxDim)));
+    setZoom(fit);
+    zoomInitialized.current = true;
+  }, [squareSize, grid.width, grid.height]);
+
+  // Pan with hand tool
+  useEffect(() => {
+    const area = canvasAreaRef.current;
+    if (!area || activeTool !== 'hand') return;
+    let active = false, sx = 0, sy = 0, sL = 0, sT = 0;
+    const onDown = (e: MouseEvent) => {
+      active = true; sx = e.clientX; sy = e.clientY;
+      sL = area.scrollLeft; sT = area.scrollTop;
+      area.style.cursor = 'grabbing'; e.preventDefault();
+    };
+    const onMove = (e: MouseEvent) => {
+      if (!active) return;
+      area.scrollLeft = sL - (e.clientX - sx);
+      area.scrollTop = sT - (e.clientY - sy);
+    };
+    const onUp = () => { active = false; area.style.cursor = 'grab'; };
+    area.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    area.style.cursor = 'grab';
+    return () => {
+      area.removeEventListener('mousedown', onDown);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      area.style.cursor = '';
+    };
+  }, [activeTool]);
+
+  // Wheel zoom (non-passive, integer steps)
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 1 : -1;
+    setZoom(prev => Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, prev + step)));
+  }, []);
+
+  useEffect(() => {
     const el = canvasAreaRef.current;
     if (!el) return;
-    const { width, height } = el.getBoundingClientRect();
-    if (width === 0 || height === 0) return;
-    const fitW = (width * 0.95) / grid.width;
-    const fitH = (height * 0.95) / grid.height;
-    const fit = Math.min(fitW, fitH);
-    const clamped = Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, fit));
-    setZoom(parseFloat(clamped.toFixed(2)));
-    zoomInitialized.current = true;
-  }, [grid.width, grid.height]);
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
 
   const pushHistory = useCallback((newData: string[]) => {
     setHistory(prev => {
@@ -71,17 +125,17 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
 
   const undo = useCallback(() => {
     if (historyIndex <= 0) return;
-    const newIndex = historyIndex - 1;
-    setHistoryIndex(newIndex);
-    setGrid(prev => ({ ...prev, data: history[newIndex] }));
+    const idx = historyIndex - 1;
+    setHistoryIndex(idx);
+    setGrid(prev => ({ ...prev, data: history[idx] }));
     setSaved(false);
   }, [historyIndex, history]);
 
   const redo = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
-    const newIndex = historyIndex + 1;
-    setHistoryIndex(newIndex);
-    setGrid(prev => ({ ...prev, data: history[newIndex] }));
+    const idx = historyIndex + 1;
+    setHistoryIndex(idx);
+    setGrid(prev => ({ ...prev, data: history[idx] }));
     setSaved(false);
   }, [historyIndex, history]);
 
@@ -94,8 +148,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
   const handleSave = useCallback(() => {
     const thumbnail = generateThumbnail(grid);
     const updated = { ...project, name: projectName, grid, palette, thumbnail, id: currentProjectId.current };
-    const newProjects = saveProject(allProjects, updated);
-    onProjectsChange(newProjects);
+    onProjectsChange(saveProject(allProjects, updated));
     setSaved(true);
   }, [project, projectName, grid, palette, allProjects, onProjectsChange]);
 
@@ -104,6 +157,11 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
     newColors[index] = color;
     setPalette({ colors: newColors });
     setSaved(false);
+  };
+
+  const handlePaletteSelect = (color: string) => {
+    setActiveColor(color);
+    setPaletteBasisColor(color);
   };
 
   useEffect(() => {
@@ -117,40 +175,15 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo, handleSave]);
 
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    const step = e.deltaY < 0 ? 0.25 : -0.25;
-    setZoom(prev => {
-      const next = prev + step;
-      return parseFloat(Math.max(MIN_ZOOM, Math.min(CREATIVE_MAX_ZOOM, next)).toFixed(2));
-    });
-  }, []);
-
-  useEffect(() => {
-    const el = canvasAreaRef.current;
-    if (!el) return;
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, [handleWheel]);
-
-  const zoomIn = () => setZoom(z => parseFloat(Math.min(CREATIVE_MAX_ZOOM, z + 0.5).toFixed(2)));
-  const zoomOut = () => setZoom(z => parseFloat(Math.max(MIN_ZOOM, z - 0.5).toFixed(2)));
-
-  const zoomLabel = zoom >= 1 ? `${zoom}x` : `${zoom}x`;
+  const zoomIn = () => setZoom(z => Math.min(CREATIVE_MAX_ZOOM, z + 1));
+  const zoomOut = () => setZoom(z => Math.max(MIN_ZOOM, z - 1));
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card/50 flex-wrap flex-shrink-0">
-        <button
-          onClick={onBack}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-          data-testid="btn-editor-back"
-        >
-          ← Menu
-        </button>
+        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" data-testid="btn-editor-back">← Menu</button>
         <div className="font-pixel text-xs text-primary hidden sm:block">CREATIVE MODE</div>
-
         <input
           type="text"
           value={projectName}
@@ -158,58 +191,31 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
           className="flex-1 max-w-48 text-sm font-semibold bg-transparent border-b border-transparent hover:border-white/20 focus:border-primary outline-none px-1"
           data-testid="input-project-name"
         />
-
         <div className="flex items-center gap-1 ml-auto flex-wrap">
-          <button
-            onClick={undo}
-            disabled={historyIndex <= 0}
-            className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 disabled:opacity-40 transition-colors"
-            title="Undo (Ctrl+Z)"
-            data-testid="btn-undo"
-          >⟲ Undo</button>
-          <button
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-            className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 disabled:opacity-40 transition-colors"
-            title="Redo (Ctrl+Shift+Z)"
-            data-testid="btn-redo"
-          >⟳ Redo</button>
-          <button
-            onClick={() => setShowGrid(g => !g)}
-            className={cn("px-2 py-1 text-xs rounded transition-colors", showGrid ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80")}
-            data-testid="btn-toggle-grid"
-          ># Grid</button>
+          <button onClick={undo} disabled={historyIndex <= 0} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 disabled:opacity-40 transition-colors" title="Undo (Ctrl+Z)" data-testid="btn-undo">⟲ Undo</button>
+          <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 disabled:opacity-40 transition-colors" title="Redo (Ctrl+Shift+Z)" data-testid="btn-redo">⟳ Redo</button>
+          <button onClick={() => setShowGrid(g => !g)} className={cn("px-2 py-1 text-xs rounded transition-colors", showGrid ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80")} data-testid="btn-toggle-grid"># Grid</button>
           <button onClick={zoomOut} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-out">−</button>
-          <span className="text-xs text-muted-foreground w-10 text-center">{zoomLabel}</span>
+          <span className="text-xs text-muted-foreground w-10 text-center">{zoom}×</span>
           <button onClick={zoomIn} className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80 transition-colors" data-testid="btn-zoom-in">+</button>
           <button onClick={handleClear} className="px-2 py-1 text-xs rounded bg-destructive/80 text-white hover:bg-destructive transition-colors" data-testid="btn-clear">Clear</button>
-          <button
-            onClick={handleSave}
-            className={cn("px-3 py-1 text-xs rounded font-semibold transition-colors", saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90")}
-            data-testid="btn-save"
-          >{saved ? '✓ Saved' : '💾 Save'}</button>
+          <button onClick={handleSave} className={cn("px-3 py-1 text-xs rounded font-semibold transition-colors", saved ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90")} data-testid="btn-save">{saved ? '✓ Saved' : '💾 Save'}</button>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left toolbar */}
-        <div
-          className={cn(
-            "flex flex-col border-r border-border bg-card/30 transition-all duration-200 overflow-y-auto flex-shrink-0",
-            toolbarMinimized ? "w-10" : "w-56"
-          )}
-        >
+        <div className={cn("flex flex-col border-r border-border bg-card/30 transition-all duration-200 overflow-y-auto flex-shrink-0", toolbarMinimized ? "w-10" : "w-56")}>
           <button
             onClick={() => setToolbarMinimized(m => !m)}
             className="p-2 text-xs text-muted-foreground hover:text-foreground transition-colors border-b border-border flex items-center justify-center"
             title={toolbarMinimized ? "Expand toolbar" : "Minimize toolbar"}
             data-testid="btn-minimize-toolbar"
-          >
-            {toolbarMinimized ? '▶' : '◀'}
-          </button>
+          >{toolbarMinimized ? '▶' : '◀'}</button>
 
           {!toolbarMinimized && (
             <div className="p-3 flex flex-col gap-4">
+              {/* Tools */}
               <div>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tools</div>
                 <div className="grid grid-cols-3 gap-1">
@@ -217,10 +223,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                     <button
                       key={tool.id}
                       onClick={() => setActiveTool(tool.id)}
-                      className={cn(
-                        "flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all text-xs",
-                        activeTool === tool.id ? "tool-active border-primary" : "border-transparent bg-muted/40 hover:bg-muted/70"
-                      )}
+                      className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all text-xs", activeTool === tool.id ? "tool-active border-primary" : "border-transparent bg-muted/40 hover:bg-muted/70")}
                       title={tool.tip}
                       data-testid={`tool-${tool.id}`}
                     >
@@ -231,6 +234,7 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 </div>
               </div>
 
+              {/* Active color */}
               <div>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Active Color</div>
                 <div className="flex items-center gap-2 mb-2">
@@ -239,17 +243,22 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 </div>
               </div>
 
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Spectrum</div>
-                <ColorSpectrum selectedColor={activeColor} onSelectColor={setActiveColor} />
-              </div>
-
+              {/* Custom Palette — FIRST (swapped) */}
               <div>
                 <CustomPalettePanel
                   colors={palette.colors}
+                  selectedColor={paletteBasisColor}
+                  onSelectColor={handlePaletteSelect}
+                  onUpdateColor={handlePaletteUpdate}
+                />
+              </div>
+
+              {/* Shade & Tint — SECOND (swapped, replaces Spectrum) */}
+              <div>
+                <ShadeAndTintPicker
+                  baseColor={paletteBasisColor}
                   selectedColor={activeColor}
                   onSelectColor={setActiveColor}
-                  onUpdateColor={handlePaletteUpdate}
                 />
               </div>
             </div>
@@ -261,38 +270,39 @@ export default function CreativeEditor({ project, allProjects, onProjectsChange,
                 <button
                   key={tool.id}
                   onClick={() => setActiveTool(tool.id)}
-                  className={cn(
-                    "w-8 h-8 rounded flex items-center justify-center text-base transition-all border-2",
-                    activeTool === tool.id ? "tool-active border-primary" : "border-transparent bg-muted/40 hover:bg-muted/70"
-                  )}
+                  className={cn("w-8 h-8 rounded flex items-center justify-center text-base transition-all border-2", activeTool === tool.id ? "tool-active border-primary" : "border-transparent bg-muted/40 hover:bg-muted/70")}
                   title={tool.tip}
                   data-testid={`tool-mini-${tool.id}`}
-                >
-                  {tool.icon}
-                </button>
+                >{tool.icon}</button>
               ))}
               <div className="w-8 h-5 rounded border border-white/20 mx-auto mt-1" style={{ backgroundColor: activeColor }} />
             </div>
           )}
         </div>
 
-        {/* Canvas area — scrollable, 95% of available space */}
-        <div
-          ref={canvasAreaRef}
-          className="flex-1 overflow-auto bg-background/50"
-        >
+        {/* Outer wrapper — fills remaining space, centers the square */}
+        <div ref={outerRef} className="flex-1 overflow-hidden flex items-center justify-center bg-background/50">
+          {/* Square scrollable canvas area */}
           <div
-            style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}
+            ref={canvasAreaRef}
+            style={{
+              width: squareSize > 0 ? squareSize : '100%',
+              height: squareSize > 0 ? squareSize : '100%',
+              overflow: 'scroll',
+              flexShrink: 0,
+            }}
           >
-            <PixelCanvas
-              grid={grid}
-              zoom={zoom}
-              showGrid={showGrid}
-              activeTool={activeTool}
-              activeColor={activeColor}
-              onGridChange={handleGridChange}
-              onPickColor={(color) => { setActiveColor(color); setActiveTool('pen'); }}
-            />
+            <div style={{ minWidth: '100%', minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
+              <PixelCanvas
+                grid={grid}
+                zoom={zoom}
+                showGrid={showGrid}
+                activeTool={activeTool}
+                activeColor={activeColor}
+                onGridChange={handleGridChange}
+                onPickColor={(color) => { setActiveColor(color); setPaletteBasisColor(color); setActiveTool('pen'); }}
+              />
+            </div>
           </div>
         </div>
       </div>

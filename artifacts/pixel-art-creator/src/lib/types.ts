@@ -1,7 +1,7 @@
 export type Mode = 'menu' | 'creative' | 'junior';
 
-export type ToolCreative = 'pen' | 'eraser' | 'blotch' | 'fill' | 'eyedropper' | 'line';
-export type ToolJunior = 'pen' | 'eraser' | 'fill' | 'stamp' | 'star' | 'circle' | 'square' | 'rainbow';
+export type ToolCreative = 'pen' | 'eraser' | 'blotch' | 'fill' | 'eyedropper' | 'line' | 'hand';
+export type ToolJunior = 'pen' | 'eraser' | 'fill' | 'stamp' | 'star' | 'circle' | 'square' | 'rainbow' | 'hand';
 
 export interface PixelGrid {
   width: number;
@@ -39,23 +39,24 @@ export interface StampShape {
 
 export const CANVAS_WIDTH = 32;
 export const CANVAS_HEIGHT = 32;
-export const CREATIVE_CANVAS_WIDTH = 640;
-export const CREATIVE_CANVAS_HEIGHT = 360;
-export const JUNIOR_CANVAS_WIDTH = 320;
-export const JUNIOR_CANVAS_HEIGHT = 180;
+export const CREATIVE_CANVAS_WIDTH = 320;
+export const CREATIVE_CANVAS_HEIGHT = 180;
+export const JUNIOR_CANVAS_WIDTH = 128;
+export const JUNIOR_CANVAS_HEIGHT = 128;
 export const MAX_HISTORY = 10;
 export const MAX_PROJECTS = 32;
 export const GALLERY_PER_PAGE = 18;
 export const CREATIVE_MAX_ZOOM = 16;
 export const JUNIOR_MAX_ZOOM = 10;
-export const MIN_ZOOM = 0.5;
+export const MIN_ZOOM = 1;
 
 export const DEFAULT_CREATIVE_PALETTE: string[] = [
-  '#FF0000', '#FF6600', '#FFFF00', '#00FF00',
-  '#00FFFF', '#0000FF', '#FF00FF', '#FF69B4',
-  '#8B4513', '#FFA500', '#800080', '#008000',
-  '#000080', '#808080', '#C0C0C0', '#FFFFFF',
-  '#FFD700', '#FF4500', '#32CD32', '#00CED1',
+  '#FF0000', '#FF6600', '#FFFF00', '#00FF00', '#00FFFF',
+  '#0000FF', '#FF00FF', '#FF69B4', '#8B4513', '#FFA500',
+  '#800080', '#008000', '#000080', '#808080', '#C0C0C0',
+  '#FFFFFF', '#FFD700', '#FF4500', '#32CD32', '#00CED1',
+  '#DC143C', '#FF7F50', '#4169E1', '#228B22', '#EE82EE',
+  '#000000', '#A52A2A', '#20B2AA', '#FF6347', '#F5F5DC',
 ];
 
 export const FULL_SPECTRUM_COLORS = [

@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Pixel Art Creator"
+title = "Pixel Pad"
 version = "1.0.0"
 id = "artifacts/pixel-art-creator"
 router = "path"
