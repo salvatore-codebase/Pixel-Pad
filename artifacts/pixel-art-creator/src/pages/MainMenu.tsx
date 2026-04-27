@@ -19,8 +19,8 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         <div className="absolute top-1/2 left-1/4 w-24 h-24 rounded-full bg-chart-2/10 blur-2xl" />
       </div>
 
-      {/* Logo */}
-      <div className="mb-12 flex flex-col items-center relative z-10">
+      {/* Logo — w-full + text-center uses the browser's native centering so all three lines share the same axis */}
+      <div className="mb-12 w-full text-center relative z-10">
         <div className="font-pixel text-2xl md:text-4xl text-primary mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
           PIXEL
         </div>
@@ -44,9 +44,12 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10 flex flex-col flex-1">
-            <div className="text-5xl mb-4">🎨</div>
-            <div className="font-pixel text-base text-primary mb-3">CREATIVE</div>
-            <div className="font-pixel text-base text-primary mb-3">MODE</div>
+            {/* Fixed-height icon row — ensures emoji tops align regardless of glyph metrics */}
+            <div className="h-16 flex items-start mb-4 leading-none text-5xl">🎨</div>
+            {/* Fixed-height title rows */}
+            <div className="h-8 flex items-center font-pixel text-base text-primary">CREATIVE</div>
+            <div className="h-8 flex items-center font-pixel text-base text-primary mb-3">MODE</div>
+            {/* Description grows to fill space, pushing tags to a consistent bottom */}
             <p className="text-sm text-muted-foreground leading-relaxed flex-1">
               Professional tools for artists. Pen, eraser, blotch tool, fill, line drawing, and a full color spectrum with 20 custom palette slots.
             </p>
@@ -68,9 +71,11 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         >
           <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative z-10 flex flex-col flex-1">
-            <div className="text-5xl mb-4">🦕</div>
-            <div className="font-pixel text-base text-chart-2 mb-3">JUNIOR</div>
-            <div className="font-pixel text-base text-chart-2 mb-3">MODE</div>
+            {/* Same fixed-height icon row */}
+            <div className="h-16 flex items-start mb-4 leading-none text-5xl">🦕</div>
+            {/* Same fixed-height title rows */}
+            <div className="h-8 flex items-center font-pixel text-base text-chart-2">JUNIOR</div>
+            <div className="h-8 flex items-center font-pixel text-base text-chart-2 mb-3">MODE</div>
             <p className="text-sm text-muted-foreground leading-relaxed flex-1">
               Fun and easy for kids! Simple tools, bright colors, and 30+ stamp shapes to create amazing pixel art.
             </p>
