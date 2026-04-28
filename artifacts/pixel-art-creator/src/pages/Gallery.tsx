@@ -76,7 +76,7 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
           )}
           data-testid="tab-creative"
         >
-          🎨 Creative Art
+          🖼️ Creative Art
           <span className={cn(
             "text-xs px-1.5 py-0.5 rounded-full font-bold",
             activeCategory === 'creative' ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
@@ -92,7 +92,7 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
           )}
           data-testid="tab-junior"
         >
-          🌈 Junior Art
+          🐾 Junior Art
           <span className={cn(
             "text-xs px-1.5 py-0.5 rounded-full font-bold",
             activeCategory === 'junior' ? "bg-chart-2/20 text-chart-2" : "bg-muted text-muted-foreground"
