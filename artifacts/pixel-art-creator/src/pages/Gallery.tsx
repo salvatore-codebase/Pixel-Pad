@@ -13,20 +13,35 @@ interface GalleryProps {
 }
 
 export default function Gallery({ projects, onProjectsChange, onOpenProject, onBack, onNewProject }: GalleryProps) {
+  const [activeCategory, setActiveCategory] = useState<'creative' | 'junior'>('creative');
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(projects.length / GALLERY_PER_PAGE));
 
-  const sortedProjects = [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
-  const pageProjects = sortedProjects.slice((currentPage - 1) * GALLERY_PER_PAGE, currentPage * GALLERY_PER_PAGE);
+  const creativeCount = projects.filter(p => p.mode === 'creative').length;
+  const juniorCount = projects.filter(p => p.mode === 'junior').length;
+
+  const filteredProjects = projects
+    .filter(p => p.mode === activeCategory)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / GALLERY_PER_PAGE));
+  const pageProjects = filteredProjects.slice(
+    (currentPage - 1) * GALLERY_PER_PAGE,
+    currentPage * GALLERY_PER_PAGE
+  );
+
+  const switchCategory = (cat: 'creative' | 'junior') => {
+    setActiveCategory(cat);
+    setCurrentPage(1);
+  };
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (confirm('Delete this project?')) {
       const updated = deleteProject(projects, id);
       onProjectsChange(updated);
-      if (currentPage > Math.ceil(updated.length / GALLERY_PER_PAGE)) {
-        setCurrentPage(Math.max(1, currentPage - 1));
-      }
+      const newFiltered = updated.filter(p => p.mode === activeCategory);
+      const newTotal = Math.max(1, Math.ceil(newFiltered.length / GALLERY_PER_PAGE));
+      if (currentPage > newTotal) setCurrentPage(newTotal);
     }
   };
 
@@ -42,44 +57,111 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
           ← Back
         </button>
         <div className="font-pixel text-sm text-primary">PROJECT GALLERY</div>
-        <div className="ml-auto text-xs text-muted-foreground">{projects.length} / 32 projects</div>
+        <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+          <span>🎨 {creativeCount} creative</span>
+          <span>·</span>
+          <span>🌈 {juniorCount} junior</span>
+        </div>
       </div>
 
-      {/* New project buttons */}
-      <div className="flex gap-3 px-6 py-4">
+      {/* Category tabs */}
+      <div className="flex gap-0 border-b border-border">
         <button
-          onClick={() => onNewProject('creative')}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-          data-testid="btn-new-creative"
+          onClick={() => switchCategory('creative')}
+          className={cn(
+            "flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-colors border-b-2 -mb-px",
+            activeCategory === 'creative'
+              ? "border-primary text-primary bg-primary/5"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          )}
+          data-testid="tab-creative"
         >
-          🎨 New Creative
+          🎨 Creative Art
+          <span className={cn(
+            "text-xs px-1.5 py-0.5 rounded-full font-bold",
+            activeCategory === 'creative' ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+          )}>{creativeCount}</span>
         </button>
         <button
-          onClick={() => onNewProject('junior')}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-chart-2 text-white text-sm font-semibold hover:bg-chart-2/90 transition-colors"
-          data-testid="btn-new-junior"
+          onClick={() => switchCategory('junior')}
+          className={cn(
+            "flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-colors border-b-2 -mb-px",
+            activeCategory === 'junior'
+              ? "border-chart-2 text-chart-2 bg-chart-2/5"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          )}
+          data-testid="tab-junior"
         >
-          🌈 New Junior
+          🌈 Junior Art
+          <span className={cn(
+            "text-xs px-1.5 py-0.5 rounded-full font-bold",
+            activeCategory === 'junior' ? "bg-chart-2/20 text-chart-2" : "bg-muted text-muted-foreground"
+          )}>{juniorCount}</span>
         </button>
+
+        {/* New project button aligned to the right */}
+        <div className="ml-auto flex items-center pr-6">
+          {activeCategory === 'creative' ? (
+            <button
+              onClick={() => onNewProject('creative')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+              data-testid="btn-new-creative"
+            >
+              🎨 New Creative
+            </button>
+          ) : (
+            <button
+              onClick={() => onNewProject('junior')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-chart-2 text-white text-sm font-semibold hover:bg-chart-2/90 transition-colors"
+              data-testid="btn-new-junior"
+            >
+              🌈 New Junior
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Projects grid */}
-      {projects.length === 0 ? (
+      {filteredProjects.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-          <div className="text-6xl mb-4">🖼️</div>
+          <div className="text-6xl mb-4">{activeCategory === 'creative' ? '🎨' : '🌈'}</div>
           <div className="font-pixel text-sm text-muted-foreground mb-2">NO PROJECTS YET</div>
-          <p className="text-sm text-muted-foreground">Create your first pixel art masterpiece!</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            {activeCategory === 'creative'
+              ? 'Create your first Creative Mode pixel art!'
+              : 'Create your first Junior Mode pixel art!'}
+          </p>
+          {activeCategory === 'creative' ? (
+            <button
+              onClick={() => onNewProject('creative')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
+              🎨 Start Creating
+            </button>
+          ) : (
+            <button
+              onClick={() => onNewProject('junior')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-chart-2 text-white text-sm font-semibold hover:bg-chart-2/90 transition-colors"
+            >
+              🌈 Start Creating
+            </button>
+          )}
         </div>
       ) : (
         <>
-          <div className="flex-1 px-6 pb-4">
+          <div className="flex-1 px-6 pt-4 pb-4">
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
               {pageProjects.map(project => {
                 const thumb = project.thumbnail || generateThumbnail(project.grid);
                 return (
                   <div
                     key={project.id}
-                    className="group relative cursor-pointer rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:scale-[1.03]"
+                    className={cn(
+                      "group relative cursor-pointer rounded-xl overflow-hidden border-2 border-transparent transition-all hover:scale-[1.03]",
+                      activeCategory === 'creative'
+                        ? "hover:border-primary hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                        : "hover:border-chart-2 hover:shadow-[0_0_20px_hsl(var(--chart-2)/0.3)]"
+                    )}
                     onClick={() => onOpenProject(project)}
                     data-testid={`gallery-project-${project.id}`}
                   >
@@ -92,7 +174,9 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
                       <div className="text-xs text-white font-semibold truncate">{project.name}</div>
-                      <div className="text-[10px] text-white/70 uppercase">{project.mode}</div>
+                      <div className="text-[10px] text-white/70">
+                        {new Date(project.updatedAt).toLocaleDateString()}
+                      </div>
                     </div>
                     <button
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-destructive/80"
@@ -101,12 +185,6 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
                     >
                       ×
                     </button>
-                    <div className={cn(
-                      "absolute top-1 left-1 text-[9px] rounded px-1 py-0.5 font-semibold",
-                      project.mode === 'creative' ? "bg-primary/90 text-white" : "bg-chart-2/90 text-white"
-                    )}>
-                      {project.mode === 'creative' ? '🎨' : '🌈'}
-                    </div>
                   </div>
                 );
               })}
@@ -131,7 +209,9 @@ export default function Gallery({ projects, onProjectsChange, onOpenProject, onB
                     onClick={() => setCurrentPage(i + 1)}
                     className={cn(
                       "w-8 h-8 rounded-lg text-sm font-semibold transition-colors",
-                      currentPage === i + 1 ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+                      currentPage === i + 1
+                        ? activeCategory === 'creative' ? "bg-primary text-primary-foreground" : "bg-chart-2 text-white"
+                        : "bg-muted hover:bg-muted/80"
                     )}
                     data-testid={`btn-page-${i + 1}`}
                   >

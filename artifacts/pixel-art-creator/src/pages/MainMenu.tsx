@@ -9,6 +9,8 @@ interface MainMenuProps {
 
 export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps) {
   const projects = loadProjects();
+  const creativeCount = projects.filter(p => p.mode === 'creative').length;
+  const juniorCount = projects.filter(p => p.mode === 'junior').length;
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('pixelpad-theme') !== 'light');
 
@@ -124,7 +126,7 @@ export default function MainMenu({ onSelectMode, onOpenGallery }: MainMenuProps)
         <span className="text-2xl">🖼️</span>
         <div className="text-left">
           <div className="font-semibold text-sm text-foreground">Project Gallery</div>
-          <div className="text-xs text-muted-foreground">{projects.length} of 32 projects saved</div>
+          <div className="text-xs text-muted-foreground">🎨 {creativeCount} creative · 🌈 {juniorCount} junior</div>
         </div>
       </button>
 
